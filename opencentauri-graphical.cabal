@@ -17,8 +17,13 @@ library
                      OpenGL,
                      GLFW,
                      cairo,
-                     pango
-  exposed-modules:   Game.Centauri.Graphical
+                     pango,
+                     cmdargs,
+                     filepath,
+                     yaml-config,
+                     text
+  exposed-modules:   Game.Centauri.Graphical,
+                     Game.Centauri.Configuration
 
 executable opencentauri
   main-is:             Main.hs

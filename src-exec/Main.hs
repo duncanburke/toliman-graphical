@@ -1,4 +1,6 @@
 
 import Game.Centauri.Graphical
+import Game.Centauri.Configuration
 
-main = graphicalMain
+main = do cfg <- loadDefaultGameConfig
+          graphicalMain cfg

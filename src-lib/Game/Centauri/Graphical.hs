@@ -8,7 +8,7 @@
 module Game.Centauri.Graphical
        ( graphicalMain ) where
 
-import Game.Centauri.Core
+import Game.Centauri.Configuration
 
-graphicalMain :: IO ()
-graphicalMain = return ()
+graphicalMain :: GameConfig -> IO ()
+graphicalMain cfg = print cfg
