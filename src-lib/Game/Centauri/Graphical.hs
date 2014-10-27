@@ -25,36 +25,37 @@ import Graphics.Rendering.OpenGL.GL
 import Graphics.UI.SDL as SDL
 import Text.Printf
 
-bracketC :: IO a -> (a -> IO b) -> ContT r IO a
-bracketC start end = ContT (bracket start end)
+type BracketM r a = ContT r (IO) a
 
-bracketC_ :: IO a -> IO b -> ContT r IO a
-bracketC_ start end = bracketC start (const end)
+bracketM :: IO a -> (a -> IO c) -> BracketM r a
+bracketM start final = ContT $ bracket start final
 
-nullBracketC start = bracketC_ start (return ())
+bracketM_ :: IO a -> IO c -> BracketM r a
+bracketM_ start final = bracketM start $ const final
 
--- type signature self-explanatory
-runBracketC :: ContT (IO a) IO (IO a) -> IO a
-runBracketC c = join $ flip runContT return $ c
+nullBracketM :: IO a -> BracketM r a
+nullBracketM action = bracketM_ action (return ())
+
+runBracketM :: BracketM a (IO a) -> IO a
+runBracketM m = runContT m id
 
 graphicalMain :: GameConfig -> IO ()
-graphicalMain cfg = runBracketC $ do
-  bracketC_ (initSDL) (finalSDL)
-  drivers <- nullBracketC sdlGetDrivers
-  nullBracketC $ print drivers
-  bracketC_ (initGL cfg) (finalGL)
-  window <- bracketC (initWindow cfg) (finalWindow)
-  win_ctx <- bracketC (initGLContext cfg window) (finalGLContext)
-  nullBracketC $ graphicalLoop cfg window
-  return $ return ()
+graphicalMain cfg = runBracketM $ do
+  bracketM_ (initSDL) (finalSDL)
+  drivers <- nullBracketM sdlGetDrivers
+  nullBracketM $ print drivers
+  bracketM_ (initGL cfg) (finalGL)
+  window <- bracketM (initWindow cfg) (finalWindow)
+  win_ctx <- bracketM (initGLContext cfg window) (finalGLContext)
+  return $ graphicalLoop cfg window
 
 graphicalLoop :: GameConfig -> SDL.Window -> IO ()
-graphicalLoop cfg window = forever $ do clearColor $= Color4 0 0 1 0
-                                        clear  [ColorBuffer]
-                                        print "swapping..."
-                                        -- checkError "swap_window" $ SDL.glSwapWindow window
-                                        SDL.glSwapWindow window
-                                        SDL.delay 1000
+graphicalLoop cfg window = do clearColor $= Color4 0 0 1 0
+                              clear  [ColorBuffer]
+                              print "swapping..."
+                              checkError "swap_window" $ SDL.glSwapWindow window
+                              SDL.delay 1000
+
 
 
 glversion = [("GL_MAJOR",SDL.glAttrContextMajorVersion,3),
@@ -118,10 +119,10 @@ initSDL = (checkRet "sdl_init" <$> SDL.init SDL.initFlagVideo ) >> print "sdl in
 
 initGL cfg = do checkRet "video_subsystem_init" <$> SDL.initSubSystem SDL.initFlagVideo
                 print "video subsystem init"
-                runBracketC $ do
+                runBracketM $ do
                   driver <- case (config_driver cfg) of
                     "" -> return nullPtr
-                    _ -> bracketC (newCString $ config_driver cfg) (free)
+                    _ -> bracketM (newCString $ config_driver cfg) (free)
                   return $ checkRet "video_init" <$> SDL.videoInit driver
                 print "video init"
                 glSetAttrs $ glversion
@@ -147,7 +148,7 @@ glwindowflags fullscreen borderless input_grabbed maximized highdpi =
                                  (maximized, SDL.windowFlagMaximized),
                                  (highdpi, SDL.windowFlagAllowHighDPI)]
 
-initWindow cfg = runBracketC $ do
+initWindow cfg = runBracketM $ do
   let fullscreen = config_fullscreen cfg
       borderless = config_borderless cfg
       width = config_width cfg
@@ -155,7 +156,7 @@ initWindow cfg = runBracketC $ do
       x = SDL.windowPosUndefined
       y = SDL.windowPosUndefined
       flags = glwindowflags fullscreen borderless False False False
-  title <- bracketC (newCString "OpenCentauri") (free)
+  title <- bracketM (newCString "OpenCentauri") (free)
   return $ checkError "create_window" $ createWindow title x y width height flags
 
 finalWindow window = do print "final window"

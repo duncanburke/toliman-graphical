@@ -24,7 +24,6 @@ library
                      cmdargs,
                      filepath,
                      mtl,
-                     transformers,
                      ConfigFile,
                      text
   exposed-modules:   Game.Centauri.Graphical,
