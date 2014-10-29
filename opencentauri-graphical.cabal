@@ -25,9 +25,12 @@ library
                      filepath,
                      mtl,
                      ConfigFile,
-                     text
+                     text,
+                     bracket-monad
   exposed-modules:   Game.Centauri.Graphical,
-                     Game.Centauri.Configuration
+                     Game.Centauri.Configuration,
+                     Game.Centauri.Graphical.OpenGL,
+                     Game.Centauri.Graphical.SDL
 
 executable opencentauri
   main-is:             Main.hs
