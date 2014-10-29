@@ -26,11 +26,13 @@ library
                      mtl,
                      ConfigFile,
                      text,
-                     bracket-monad
+                     bracket-monad,
+                     assert
   exposed-modules:   Game.Centauri.Graphical,
                      Game.Centauri.Configuration,
                      Game.Centauri.Graphical.OpenGL,
-                     Game.Centauri.Graphical.SDL
+                     Game.Centauri.Graphical.SDL,
+                     Game.Centauri.Graphical.Events
 
 executable opencentauri
   main-is:             Main.hs

@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, NamedFieldPuns #-}
 {- |
    module      : Game.Centauri.Graphical
    copyright   : (c) Duncan Burke
@@ -12,13 +12,21 @@ module Game.Centauri.Graphical
 import qualified Game.Centauri.Configuration as Conf
 import Game.Centauri.Graphical.SDL as SDL
 import Game.Centauri.Graphical.OpenGL as GL
+import Game.Centauri.Graphical.Events
 
 import Control.Exception.BracketM
 
 import Foreign.Ptr
 import Control.Applicative
+import Control.Monad.State as State
 import Foreign.C.String
 import Foreign.Marshal.Alloc
+
+
+data GraphicalState = GraphicalState
+                      { window :: SDL.Window,
+                        glctx :: SDL.GLContext,
+                        evstate :: EventState }
 
 graphicalMain :: Conf.GameConfig -> IO ()
 graphicalMain cfg = runBracketM $ do
@@ -27,18 +35,34 @@ graphicalMain cfg = runBracketM $ do
   drivers <- lift SDL.getVideoDrivers
   lift $ print drivers
   bracketM_ (initVideo cfg) finalVideo
-  win_title <- bracketM (newCString "OpenCentauri") (free)
-  window <- bracketM (initWindow cfg win_title) finalWindow
-  win_ctx <- bracketM (initGLContext cfg window) finalGLContext
-  return $ graphicalLoop cfg window
+  evstate_ <- bracketM (initEvents $ Conf.evconfig cfg) (finaliseEvents $ Conf.evconfig cfg)
+  win_title <- bracketM (newCString "OpenCentauri") free
+  window_ <- bracketM (initWindow cfg win_title) finalWindow
+  glctx_ <- bracketM (initGLContext cfg window_) finalGLContext
+  let window = window_
+      glctx = glctx_
+      evstate = evstate_ in
+    return $ evalStateT (graphicalLoop cfg) $ GraphicalState {window,glctx,evstate}
 
-graphicalLoop :: Conf.GameConfig -> SDL.Window -> IO ()
-graphicalLoop cfg window = do
-  clearColor $= Color4 0 0 1 0
-  clear  [ColorBuffer]
-  SDL.logDebugVideo "swapping"
-  SDL.checkError "swap_window" $ SDL.glSwapWindow window
-  SDL.delay 1000
+graphicalLoop :: Conf.GameConfig -> StateT GraphicalState IO ()
+graphicalLoop cfg = do
+  evstate_ <- (evstate <$> State.get) >>= \evstate_ -> (lift $ dispatchEvents (Conf.evconfig cfg) evstate_)
+  modify (\st -> st {evstate=evstate_})
+  doRender cfg
+  case False of
+    True -> lift $ return ()
+    False -> graphicalLoop cfg
+
+doRender :: Conf.GameConfig -> StateT GraphicalState IO ()
+doRender cfg = do
+  st <- State.get
+  lift $ do
+    clearColor $= Color4 0 0 1 0
+    clear  [ColorBuffer]
+    SDL.logDebugVideo "swapping"
+    SDL.checkError "swap_window" $ SDL.glSwapWindow (window st)
+    SDL.delay 1000
+
 
 initSDL = do
   SDL.logInfoApplication "sdl init"
@@ -67,6 +91,7 @@ finalVideo = do
   SDL.videoQuit
   SDL.quitSubSystem SDL.initFlagVideo
 
+initWindow :: Conf.GameConfig -> CString -> IO SDL.Window
 initWindow cfg title = runBracketM $ do
   lift $ SDL.logInfoApplication "window init"
   let fullscreen = Conf.fullscreen cfg
@@ -83,6 +108,7 @@ finalWindow window = do
   destroyWindow window
 
 
+initGLContext :: Conf.GameConfig -> SDL.Window -> IO SDL.GLContext
 initGLContext cfg window = do
   logInfoApplication "gl ctx init"
   let vsync = Conf.vsync cfg

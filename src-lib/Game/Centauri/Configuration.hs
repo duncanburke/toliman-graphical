@@ -6,6 +6,8 @@ import qualified Data.ConfigFile as F
 import Control.Applicative
 import Foreign.C.Types
 
+import Game.Centauri.Graphical.Events
+
 data GameConfig = GameConfig { assetdir :: FilePath,
                                width :: CInt,
                                height :: CInt,
@@ -13,26 +15,31 @@ data GameConfig = GameConfig { assetdir :: FilePath,
                                borderless :: Bool,
                                vsync :: Bool,
                                vsync_late_tear :: Bool,
-                               driver :: String
+                               driver :: String,
+                               evconfig :: EventConfig
                              } deriving (Show)
 
 loadGame file = do cp <- F.readstring F.emptyCP file
-                   width <- read <$> F.get cp "graphics" "width"
-                   height <- read <$> F.get cp "graphics" "height"
-                   fullscreen <- read <$> F.get cp "graphics" "fullscreen"
-                   borderless <- read <$> F.get cp "graphics" "borderless"
-                   driver <- read <$> F.get cp "graphics" "driver"
-                   vsync <- read <$> F.get cp "graphics" "vsync"
-                   vsync_late_tear <- read <$> F.get cp "graphics" "vsync_late_tear"
-                   assetdir <- read <$> F.get cp "main" "assetdir"
-                   return GameConfig { assetdir = assetdir,
-                                       width = width,
-                                       height = height,
-                                       fullscreen = fullscreen,
-                                       borderless = borderless,
-                                       vsync = vsync,
-                                       vsync_late_tear = vsync_late_tear,
-                                       driver = driver}
+                   width_ <- read <$> F.get cp "graphics" "width"
+                   height_ <- read <$> F.get cp "graphics" "height"
+                   fullscreen_ <- read <$> F.get cp "graphics" "fullscreen"
+                   borderless_ <- read <$> F.get cp "graphics" "borderless"
+                   driver_ <- read <$> F.get cp "graphics" "driver"
+                   vsync_ <- read <$> F.get cp "graphics" "vsync"
+                   vsync_late_tear_ <- read <$> F.get cp "graphics" "vsync_late_tear"
+                   assetdir_ <- read <$> F.get cp "main" "assetdir"
+                   evconfig_ <- return $ EventConfig
+                   return GameConfig
+                     {assetdir = assetdir_,
+                      width = width_,
+                      height = height_,
+                      fullscreen = fullscreen_,
+                      borderless = borderless_,
+                      vsync = vsync_,
+                      vsync_late_tear = vsync_late_tear_,
+                      driver = driver_,
+                      evconfig = evconfig_}
+
 loadGameConfig :: FilePath -> IO GameConfig
 loadGameConfig path = do file <- readFile path
                          case loadGame file of
