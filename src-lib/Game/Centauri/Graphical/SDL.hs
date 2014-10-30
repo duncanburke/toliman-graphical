@@ -30,17 +30,20 @@ module Game.Centauri.Graphical.SDL
          logErrorVideo,
          checkRet,
          checkError,
-         getVideoDrivers)
+         getVideoDrivers,
+         checkPtr,
+         checkPtr_)
        where
 
-import Graphics.UI.SDL
 
+import Control.Exception.Assert
 import Control.Applicative
 import Foreign.C.Types
 import Foreign.C.String
 import Foreign.Storable
+import Foreign.Ptr
+import Graphics.UI.SDL
 import Text.Printf
-
 
 logMessage_ :: LogPriority -> CInt -> String -> IO String
 logMessage_ pri c s = do
@@ -100,3 +103,9 @@ getVideoDrivers :: IO [String]
 getVideoDrivers = do
   n_drivers <- checkRet "num_video_drivers" =<< getNumVideoDrivers
   sequence $ (\n -> (getVideoDriver n) >>= peekCString) <$> [0..(n_drivers-1)]
+
+checkPtr_ :: (Storable a) => Ptr a -> Ptr a
+checkPtr_ p = assert (p /= nullPtr) p
+
+checkPtr :: (Storable a) => Ptr a -> IO (Ptr a)
+checkPtr = return . checkPtr_

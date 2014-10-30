@@ -27,13 +27,26 @@ library
                      ConfigFile,
                      text,
                      bracket-monad,
-                     assert
+                     assert,
+                     data-r-tree
   exposed-modules:   Game.Centauri.Graphical,
                      Game.Centauri.Configuration,
                      Game.Centauri.Graphical.OpenGL,
                      Game.Centauri.Graphical.SDL,
-                     Game.Centauri.Graphical.Events
-
+                     Game.Centauri.Graphical.Events,
+                     Game.Centauri.Graphical.Core
+                     Game.Centauri.Graphical.UI,
+                     Game.Centauri.Graphical.Configuration,
+                     Game.Centauri.Graphical.UI.Events,
+                     Game.Centauri.Graphical.UI.Widgets,
+                     Game.Centauri.Graphical.UI.State,
+                     Game.Centauri.Graphical.UI.Configuration
+  extensions:        NamedFieldPuns,
+                     ScopedTypeVariables,
+                     MonadComprehensions,
+                     TupleSections,
+                     DisambiguateRecordFields,
+                     RecordWildCards
 executable opencentauri
   main-is:             Main.hs
   ghc-options:         -Wall
