@@ -1,13 +1,12 @@
-{-# LANGUAGE TypeSynonymInstances, FlexibleInstances, NamedFieldPuns #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 
 module Game.Centauri.Graphical.UI.Events
        (dispatchEvents) where
 
 import Game.Centauri.Graphical.SDL as SDL
-import Game.Centauri.Core as Core
-
 import Game.Centauri.Graphical.UI.State as State
 
+import Codec.Binary.UTF8.String as UTF8
 import Control.Monad.State
 import Control.Applicative
 import Data.Foldable
@@ -17,69 +16,55 @@ instance Monoid (State UIState ()) where
   mempty = return ()
   mappend = (>>)
 
-dispatchEvents :: [SDL.Event] -> GameState -> State UIState ()
-dispatchEvents evl gst = fold $ flip dispatchEvent gst <$> evl
+dispatchEvents :: [Event] -> State UIState ()
+dispatchEvents evl = fold $ dispatchEvent <$> evl
 
-type EventHandler = SDL.Event -> Core.GameState -> State UIState ()
+dispatchEvent :: SDL.Event ->  State UIState ()
 
-dispatchEvent :: EventHandler
-
-dispatchEvent ev@(QuitEvent {})= exitRequested ev
-
-dispatchEvent ev@(WindowEvent {eventType}) =
-  case eventType of
-    windowEventShown -> winStateChanged ev
-    windowEventHidden -> winStateChanged ev
-    windowEventRestored -> winStateChanged ev
-    windowEventEnter -> winStateChanged ev
-    windowEventLeave -> winStateChanged ev
-    windowEventFocusGained -> winStateChanged ev
-    windowEventFocusLost -> winStateChanged ev
-    windowEventClose -> winStateChanged ev
-    _ -> \_ -> return ()
-
--- dispatchEvent _ ev@(MouseMotionEvent {eventType}) = do
---   evstate <- get
---   case eventType of
---     eventTypeMouseMotion -> lift $ return ()
---     _ -> lift $ return ()
-
--- dispatchEvent _ ev@(MouseButtonEvent {eventType}) = do
---   evstate <- get
---   case eventType of
---     eventTypeMouseButtonDown -> lift $ return ()
---     eventTypeMouseButtonUp -> lift $ return ()
---     _ -> lift $ return ()
+dispatchEvent (QuitEvent {}) = uiQuitEvent
 
 
--- dispatchEvent ev@(KeyboardEvent {eventType}) = do
---   case eventType of
---     eventTypeKeyDown -> lift $ return ()
---     eventTypeKeyUp -> lift $ return ()
---     _ -> lift $ return ()
+dispatchEvent (MouseButtonEvent {eventType,
+                                    mouseButtonEventButton = b,
+                                    mouseButtonEventClicks = clicks,
+                                    mouseButtonEventX = x,
+                                    mouseButtonEventY = y}) =
+  let button = case button of
+        _ | b == buttonLeft -> Just MouseLeft
+          | b == buttonRight -> Just MouseRight
+          | otherwise -> Nothing
+      clicks_ = fromIntegral clicks
+      [x_, y_] = fromIntegral <$> [x, y]
+      isdown = case False of
+        _ | eventType == eventTypeMouseButtonDown -> Just True
+          | eventType == eventTypeMouseButtonUp -> Just False
+          | otherwise -> Nothing
+      sendEvent = do
+        button_ <- button
+        isdown_ <- isdown
+        return $ uiMouseButtonEvent button_ isdown_ clicks_ x_ y_
+  in
+  case sendEvent of
+    Just ev -> ev
+    Nothing -> return ()
 
--- dispatchEvent _ ev@(TextInputEvent {eventType}) = do
---   evstate <- get
---   case eventType of
---     eventTypeTextInput -> lift $ return ()
---     _ -> lift $ return ()
+dispatchEvent (KeyboardEvent {eventType,
+                                 keyboardEventRepeat = isrepeat,
+                                 keyboardEventKeysym = keysym}) =
+  let isdown = case False of
+        _ | eventType == eventTypeKeyDown -> Just True
+          | eventType == eventTypeKeyUp -> Just False
+          | otherwise -> Nothing
+      isrepeat_ = isrepeat /= 0
+      sendEvent = do
+        isdown_ <- isdown
+        return $ uiKeyboardEvent keysym isdown_ isrepeat_
+  in
+  case sendEvent of
+    Just ev -> ev
+    Nothing -> return ()
 
--- dispatchEvent _ ev@(MouseWheelEvent {eventType}) = do
---   evstate <- get
---   case eventType of
---     eventTypeMouseWheel -> lift $ return ()
---     _ -> lift $ return ()
+dispatchEvent (TextInputEvent {textInputEventText = buf}) =
+  uiTextInputEvent $ UTF8.decode $ fromIntegral <$> buf
 
-
-dispatchEvent _ = \_ -> return ()
-
-
-winStateChanged :: EventHandler
-winStateChanged ev@(WindowEvent {}) _ = do
-  return ()
-
-
-exitRequested :: EventHandler
-exitRequested _ _ = modify $ \uistate -> uistate {engine_command = EngineShutdown}
-
-
+dispatchEvent _ = return ()

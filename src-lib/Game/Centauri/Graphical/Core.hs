@@ -13,7 +13,6 @@ import Game.Centauri.Assets
 import Control.Exception.BracketM
 
 import Foreign.Ptr
-import Control.Applicative
 import Control.Monad.State as State
 import Foreign.C.String
 import Foreign.Marshal.Alloc
@@ -28,32 +27,32 @@ data GraphicalState = GraphicalState
                         astate :: AssetState}
 
 graphicalMain :: GameConfig -> IO ()
-graphicalMain cfg = runBracketM $ do
-  bracketM_ (initSDL $ grcfg cfg) finalSDL
-  bracketM_ (initVideo $ grcfg cfg) finalVideo
-  evstate_ <- bracketM initEvents finalEvents
-  uistate_ <- bracketM (initUIState $ Conf.uicfg cfg) finalUIState
-  gstate_ <- bracketM initGameState finalGameState
-  astate_ <- bracketM (initAssetState $ ascfg cfg) (finalAssetState)
-  win_title <- bracketM (newCString "OpenCentauri") free
-  window_ <- bracketM (initWindow (grcfg cfg) win_title) finalWindow
-  glctx_ <- bracketM (initGLContext (grcfg cfg) window_) finalGLContext
-  return $ evalStateT graphicalLoop GraphicalState {
-    window = window_,
-    glctx = glctx_,
-    evstate = evstate_,
-    uistate = uistate_,
-    gstate = gstate_,
-    astate = astate_}
+graphicalMain GameConfig {asset_config,ui_config,graphics_config} =
+  runBracketM $ do
+    bracketM_ (initSDL $ graphics_config) finalSDL
+    bracketM_ (initVideo $ graphics_config) finalVideo
+    evstate_ <- bracketM initEvents finalEvents
+    uistate_ <- bracketM (initUIState $ ui_config) finalUIState
+    gstate_ <- bracketM initGameState finalGameState
+    astate_ <- bracketM (initAssetState $ asset_config) (finalAssetState)
+    win_title <- bracketM (newCString "OpenCentauri") free
+    window_ <- bracketM (initWindow graphics_config win_title) finalWindow
+    glctx_ <- bracketM (initGLContext graphics_config window_) finalGLContext
+    return $ evalStateT graphicalLoop GraphicalState {
+      window = window_,
+      glctx = glctx_,
+      evstate = evstate_,
+      uistate = uistate_,
+      gstate = gstate_,
+      astate = astate_}
 
 graphicalLoop :: StateT GraphicalState IO ()
 graphicalLoop = do
-  event_list <- lift =<< Events.getEvents <$> evstate <$> State.get
-  refreshInputState <$> (window <$> State.get) <*> (uistate <$> State.get) >>=
-    lift >>=
-    \uist -> modify (\st -> st {uistate=uist})
-  (\st -> evalState (return $ uistate st) $ dispatchEvents event_list $ gstate st) <$> State.get >>=
-    \uist -> modify (\st -> st {uistate=uist})
+  State.get >>= \st -> lift $ do
+    events <- Events.getEvents $ evstate st
+    uistate_ <- execStateT (refreshInputState $ window st) (uistate st)
+    uistate_ <- return $ execState (dispatchEvents events) uistate_
+    return st { uistate = uistate_ }
   doRender
   case False of
     True -> lift $ return ()

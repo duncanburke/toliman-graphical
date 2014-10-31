@@ -25,4 +25,7 @@ initGraphicsConfig = GraphicsConfig {
   borderless = False,
   vsync = VSyncNone,
   driver = "",
-  sdl_log_pri = []}
+  sdl_log_pri = [(logCategoryApplication,logPriorityDebug),
+                 (logCategoryInput,logPriorityDebug),
+                 (logCategoryVideo,logPriorityInfo),
+                 (logCategoryRender,logPriorityDebug)]}

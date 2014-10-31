@@ -32,16 +32,22 @@ module Game.Centauri.Graphical.SDL
          checkError,
          getVideoDrivers,
          checkPtr,
-         checkPtr_)
+         checkPtr_,
+         SDLInputState(..),
+         initSDLInputState,
+         finalSDLInputState,
+         reloadSDLInputState)
        where
 
 
 import Control.Exception.Assert
 import Control.Applicative
+import Data.Word
 import Foreign.C.Types
 import Foreign.C.String
 import Foreign.Storable
 import Foreign.Ptr
+import Foreign.Marshal.Alloc
 import Graphics.UI.SDL
 import Text.Printf
 
@@ -109,3 +115,31 @@ checkPtr_ p = assert (p /= nullPtr) p
 
 checkPtr :: (Storable a) => Ptr a -> IO (Ptr a)
 checkPtr = return . checkPtr_
+
+
+data SDLInputState = SDLInputState {
+  window_flags :: Word32,
+  mouse_flags :: Word32,
+  mouse_coords :: (Ptr CInt, Ptr CInt)
+  } deriving (Show)
+
+initSDLInputState :: IO SDLInputState
+initSDLInputState = do
+  m0 <- checkPtr =<< malloc
+  m1 <- checkPtr =<< malloc
+  return SDLInputState {window_flags = 0,
+                        mouse_flags = 0,
+                        mouse_coords = (m0,m1)}
+
+finalSDLInputState :: SDLInputState -> IO ()
+finalSDLInputState st = do
+  let (m0,m1) = mouse_coords st
+  free $ checkPtr_ m0
+  free $ checkPtr_ m1
+
+reloadSDLInputState :: Window -> SDLInputState -> IO SDLInputState
+reloadSDLInputState window st = do
+  window_flags_ <- checkError "window flags" $ getWindowFlags window
+  mouse_flags_ <- checkError "mouse flags" $ uncurry getMouseState $ mouse_coords st
+  return st { window_flags = window_flags_,
+              mouse_flags = mouse_flags_ }

@@ -1,42 +1,50 @@
+{-# LANGUAGE ImpredicativeTypes #-}
 module Game.Centauri.Graphical.UI.State
        (UIState(..),
-        UIInputState(..),
         UIEngineCommand(..),
+        UIInputState(..),
+        UIElem,
+        UIMouseButton(..),
+        UIMouseEvent(..),
+        UIKeyboardEvent(..),
+        UIInputEvent(..),
+        UIInputEventStatus(..),
+        uiElemSendEvent,
+        uiElemDraw,
+        uiElemModify,
         initUIState,
         finalUIState,
+        uiStartCaptureInput,
+        uiEndCaptureInput,
+        uiSendEngineCommand,
         refreshInputState,
-        uiStartCapture,
-        uiEndCapture,
-        initWidgets,
-        finalWidgets,
-        WidgetState(..)
+        uiMouseMotionEvent,
+        uiMouseButtonEvent,
+        uiKeyboardEvent,
+        uiTextInputEvent,
+        uiQuitEvent
         ) where
 
 import Game.Centauri.Graphical.SDL as SDL
 import Game.Centauri.Graphical.UI.Configuration
-import Game.Centauri.Core as Core
+import Game.Centauri.Graphical.Rendering as Rendering
 
-import Data.Word
+import Data.Map.Strict as Map
 import Data.RTree as RTree
-import Data.Typeable
+import Data.Set as Set
+import Data.Tuple.Curry
 import Control.Monad.State as State
-import Foreign.Ptr
-import Foreign.Marshal.Alloc
-import Foreign.C.Types
+import Control.Applicative
+import Text.Printf
 
-data ScreenCoord = ScreenCoord Int Int deriving (Show)
+type ScreenCoord = (Int,Int)
 
 data UIState = UIState {
   uicfg :: UIConfig,
+  sdl_input_state :: SDLInputState,
   input_state :: UIInputState,
-  widgets :: WidgetState,
+  input_elems :: UIInputElems,
   engine_command :: UIEngineCommand
-  } deriving (Show)
-
-data UIInputState = UIInputState {
-  window_flags :: Word32,
-  mouse_state :: Word32,
-  mouse_coords :: (Ptr CInt, Ptr CInt)
   } deriving (Show)
 
 data UIEngineCommand =
@@ -44,97 +52,170 @@ data UIEngineCommand =
   EngineShutdown |
   EngineReInit deriving (Show)
 
-initUIState :: UIConfig -> IO UIState
-initUIState cfg = do
-  m0 <- checkPtr =<< malloc
-  m1 <- checkPtr =<< malloc
-  let input_state_ = UIInputState {window_flags = 0,
-                                  mouse_state = 0,
-                                  mouse_coords = (m0,m1)}
-      engine_command_ = EngineNoCommand
-  widgets_ <- initWidgets cfg
-  return UIState {uicfg = cfg,
-                  input_state = input_state_,
-                  widgets = widgets_,
-                  engine_command = engine_command_}
+data UIInputState = UIInputState {
+  mouse_state :: UIMouseState,
+  keyboard_state :: UIKeyboardState } deriving (Show)
 
-finalUIState :: UIState -> IO ()
-finalUIState uistate = do
-  finalWidgets $ widgets uistate
-  let (m0,m1) = mouse_coords $ input_state uistate
-  free m0
-  free m1
+type UIElemID = Int
 
+data UIInputElems = UIInputElems {
+  elem_map :: Map UIElemID UIElem }
 
-type WidgetID = Int
+instance Show UIInputElems where
+  show el = printf "Elems { elem_map = Map (%d) }" (Map.size $ elem_map el)
 
-data WidgetState = WidgetState {
-  mouse_input_state :: WidgetMouseState } deriving (Show)
+type UIElem = forall a. UIElem_ a
 
-data WidgetMouseState =
+data UIElem_ a = UIElem {
+  elem_id :: UIElemID,
+  elem_active :: Bool,
+  elem_pos :: ScreenCoord,
+  elem_size :: ScreenCoord,
+  elem_parent :: Maybe UIElemID,
+  elem_children :: Set UIElemID,
+  _this :: a,
+  _handle_event :: a -> UIInputEvent -> UIState -> State UIState UIInputEventStatus,
+  _draw :: a -> RenderCommand }
+
+instance Show (UIElem_ a) where
+  show el = uncurryN (printf "Elem(%s,%s,(%s,%s),(%s,%s))") t
+            where t = (elem_id$el,
+                       show.elem_active$el,
+                       fst.elem_pos$el,
+                       snd.elem_pos$el,
+                       fst.elem_size$el,
+                       snd.elem_size$el)
+
+uiElemSendEvent UIElem {_this = this, _handle_event = handle_event} = handle_event this
+uiElemDraw UIElem {_this = this, _draw = draw} = draw this
+
+uiElemModify :: forall a. UIElem_ a -> a -> UIElem_ a
+uiElemModify el this = el {_this = this}
+
+uiElemBB :: UIElem -> MBB
+uiElemBB el = mbb x y (x+width) (y+height)
+  where [x,y,width,height] = fromIntegral <$>
+                             [fst.elem_pos$el,
+                              snd.elem_pos$el,
+                              fst.elem_size$el,
+                              snd.elem_size$el]
+
+data UIMouseState =
   MouseInactive ScreenCoord |
   MousePressed {
     mouse_start :: ScreenCoord,
-    mouse_widget_start :: WidgetID,
+    mouse_start_elem :: UIElemID,
     mouse_pos :: ScreenCoord,
-    mouse_button :: MouseButton } deriving (Show)
+    mouse_button :: UIMouseButton } deriving (Show)
 
-data MouseButton =
+data UIKeyboardFocus =
+  KeyboardNoFocus |
+  KeyboardElemFocus UIElemID deriving (Show)
+
+data UIKeyboardState = UIKeyboardState {
+  keyboard_focus :: UIKeyboardFocus } deriving (Show)
+
+data UIMouseButton =
   MouseLeft |
   MouseRight deriving (Show)
-data MouseEvent = MouseEnter |
-                  MouseLeave |
-                  MouseMove ScreenCoord |
-                  MouseDown ScreenCoord MouseButton |
-                  MouseUp ScreenCoord MouseButton |
-                  MouseClick MouseButton deriving (Show)
 
-data Key = Key deriving (Show)
-data KeyboardEvent =
-  KeyDown Key |
-  KeyUp Key |
-  KeyPress Key deriving (Show)
+data UIMouseEvent =
+  MouseEnter |
+  MouseLeave |
+  MouseMove ScreenCoord |
+  MouseDown ScreenCoord UIMouseButton |
+  MouseUp ScreenCoord UIMouseButton |
+  MouseClick UIMouseButton deriving (Show)
 
-data WidgetEvent =
-  KeyboardEvent |
-  MouseEvent deriving (Show)
+data UIKeyboardEvent =
+  KeyDown Keysym |
+  KeyUp Keysym |
+  KeyPress Keysym deriving (Show)
 
-class (Typeable a) => Widget a where
-  id :: a -> WidgetID
-  pos :: a -> ScreenCoord
-  width :: a -> Int
-  height :: a -> Int
-  active :: a -> Bool
-  bb :: a -> MBB
-  bb a = mbb (fromIntegral x) (fromIntegral y) (fromIntegral $ x + width a) (fromIntegral $ y + height a)
-         where ScreenCoord x y = pos a
-  eventhandler :: a -> WidgetEvent -> GameState -> State UIState ()
+data UIInputEvent =
+  UIKeyboardEvent |
+  UIMouseEvent deriving (Show)
 
-initWidgets :: UIConfig -> IO WidgetState
-initWidgets cfg = do
-  mouse_input_state_ <- return $ MouseInactive $ ScreenCoord 0 0
-  return WidgetState {
-    mouse_input_state = mouse_input_state_ }
+data UIInputEventStatus =
+  EventHandled |
+  EventFallThrough deriving (Show)
 
-finalWidgets :: WidgetState -> IO ()
-finalWidgets st = do
+initUIState :: UIConfig -> IO UIState
+initUIState cfg = do
+  sdl_input_state_ <- initSDLInputState
+  input_state_ <- initUIInputState cfg
+  input_elems_ <- initUIElems cfg
+  return UIState {uicfg = cfg,
+                  sdl_input_state = sdl_input_state_,
+                  input_state = input_state_,
+                  input_elems = input_elems_,
+                  engine_command = EngineNoCommand}
+
+finalUIState :: UIState -> IO ()
+finalUIState st = do
+  finalSDLInputState $ sdl_input_state st
+  finalUIInputState $ input_state st
+  finalUIElems $ input_elems st
+
+initUIInputState :: UIConfig -> IO UIInputState
+initUIInputState cfg = do
+  let mouse_state_ = MouseInactive (0,0)
+      keyboard_state_ = UIKeyboardState KeyboardNoFocus
+  return UIInputState {
+    mouse_state = mouse_state_,
+    keyboard_state = keyboard_state_ }
+
+finalUIInputState :: UIInputState -> IO ()
+finalUIInputState st = return ()
+
+initUIElems :: UIConfig -> IO UIInputElems
+initUIElems cfg = do
+  let elem_map_ = Map.empty
+  return UIInputElems {
+    elem_map = elem_map_ }
+
+finalUIElems :: UIInputElems -> IO ()
+finalUIElems el = do
   return ()
 
-refreshInputState :: SDL.Window -> UIState -> IO UIState
-refreshInputState window uistate = do
-  winfl <- SDL.checkError "window flags" $ SDL.getWindowFlags window
-  mousest <- SDL.checkError "mouse flags" $ uncurry SDL.getMouseState $ mouse_coords $ input_state uistate
-  return uistate {input_state = (input_state uistate) {
-                     window_flags = winfl,
-                     mouse_state = mousest}}
-
-uiStartCapture :: UIState -> IO UIState
-uiStartCapture uistate = do
+uiStartCaptureInput :: UIState -> IO UIState
+uiStartCaptureInput uistate = do
   let cfg = uicfg uistate
   SDL.checkError "mouse relative" $ SDL.setRelativeMouseMode $ mouse_relative cfg
   return uistate
 
-uiEndCapture :: UIState -> IO UIState
-uiEndCapture uistate = do
+uiEndCaptureInput :: UIState -> IO UIState
+uiEndCaptureInput uistate = do
   SDL.checkError "mouse relative" $ SDL.setRelativeMouseMode False
   return uistate
+
+uiSendEngineCommand :: UIEngineCommand -> State UIState ()
+uiSendEngineCommand cmd =
+  modify (
+    \st -> case cmd of
+      EngineShutdown -> st {engine_command = EngineShutdown}
+      EngineReInit -> case engine_command st of
+        EngineShutdown -> st
+        _ -> st {engine_command = EngineReInit}
+      _ -> st)
+
+refreshInputState :: SDL.Window -> StateT UIState IO ()
+refreshInputState win = do
+  st <- State.get
+  (lift $ reloadSDLInputState win (sdl_input_state st)) >>=
+   \sdl_st -> put st{sdl_input_state = sdl_st}
+
+uiMouseMotionEvent :: Int -> Int -> Int -> Int -> State UIState ()
+uiMouseMotionEvent x y xrel yrel = return ()
+
+uiMouseButtonEvent :: UIMouseButton -> Bool -> Int -> Int -> Int -> State UIState ()
+uiMouseButtonEvent button isdown clicks x y = return ()
+
+uiKeyboardEvent :: Keysym -> Bool -> Bool -> State UIState ()
+uiKeyboardEvent keysym isdown isrepeat = return ()
+
+uiTextInputEvent :: String -> State UIState ()
+uiTextInputEvent str = return ()
+
+uiQuitEvent :: State UIState ()
+uiQuitEvent = return ()
