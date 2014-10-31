@@ -40,8 +40,9 @@ module Game.Centauri.Graphical.SDL
        where
 
 
-import Control.Exception.Assert
 import Control.Applicative
+import Control.Exception.Assert
+import Control.Monad
 import Data.Word
 import Foreign.C.Types
 import Foreign.C.String
@@ -90,8 +91,8 @@ logErrorVideo = logMessage_ logPriorityError logCategoryVideo
 
 checkRet :: String -> CInt -> IO CInt
 checkRet desc ret = case ret of
-  -1 -> (logErrorApplication $ printf "%s" desc) >>= fail
-  _ -> (logDebugApplication $ printf "success %s" desc) >> return ret
+  -1 -> logErrorApplication (printf "%s" desc) >>= fail
+  _ -> logDebugApplication  (printf "success %s" desc) >> return ret
 
 checkError :: String -> IO a -> IO a
 checkError desc call = do
@@ -100,15 +101,15 @@ checkError desc call = do
   err <- getError
   c <- peek err
   case c of
-    0 -> (logDebugApplication $ printf "success %s" desc) >> return a
+    0 -> logDebugApplication (printf "success %s" desc) >> return a
     _ -> do
       s <- peekCString err
-      (logErrorApplication $ printf "%s (%s)" desc s) >>= fail
+      logErrorApplication (printf "%s (%s)" desc s) >>= fail
 
 getVideoDrivers :: IO [String]
 getVideoDrivers = do
   n_drivers <- checkRet "num_video_drivers" =<< getNumVideoDrivers
-  sequence $ (\n -> (getVideoDriver n) >>= peekCString) <$> [0..(n_drivers-1)]
+  sequence $ (getVideoDriver >=> peekCString) <$> [0..(n_drivers-1)]
 
 checkPtr_ :: (Storable a) => Ptr a -> Ptr a
 checkPtr_ p = assert (p /= nullPtr) p

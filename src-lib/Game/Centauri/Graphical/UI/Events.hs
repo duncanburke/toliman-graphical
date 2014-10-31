@@ -9,15 +9,11 @@ import Game.Centauri.Graphical.UI.State as State
 import Codec.Binary.UTF8.String as UTF8
 import Control.Monad.State
 import Control.Applicative
-import Data.Foldable
-import Data.Monoid
-
-instance Monoid (State UIState ()) where
-  mempty = return ()
-  mappend = (>>)
+import Data.Foldable as Foldable
+import Data.Maybe
 
 dispatchEvents :: [Event] -> State UIState ()
-dispatchEvents evl = fold $ dispatchEvent <$> evl
+dispatchEvents evl = Foldable.sequence_ $ dispatchEvent <$> evl
 
 dispatchEvent :: SDL.Event ->  State UIState ()
 
@@ -43,10 +39,7 @@ dispatchEvent (MouseButtonEvent {eventType,
         button_ <- button
         isdown_ <- isdown
         return $ uiMouseButtonEvent button_ isdown_ clicks_ x_ y_
-  in
-  case sendEvent of
-    Just ev -> ev
-    Nothing -> return ()
+  in fromMaybe (return ()) sendEvent
 
 dispatchEvent (KeyboardEvent {eventType,
                                  keyboardEventRepeat = isrepeat,
@@ -59,10 +52,7 @@ dispatchEvent (KeyboardEvent {eventType,
       sendEvent = do
         isdown_ <- isdown
         return $ uiKeyboardEvent keysym isdown_ isrepeat_
-  in
-  case sendEvent of
-    Just ev -> ev
-    Nothing -> return ()
+  in fromMaybe (return ()) sendEvent
 
 dispatchEvent (TextInputEvent {textInputEventText = buf}) =
   uiTextInputEvent $ UTF8.decode $ fromIntegral <$> buf

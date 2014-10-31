@@ -57,7 +57,7 @@ glmsaa s = [
   ("GL_MULTISAMPLESAMPLES",glAttrMultiSampleSamples, s)]
 
 glwindowflags fullscreen borderless input_grabbed maximized highdpi =
-  orFlags $ filterPred $ [
+  orFlags $ filterPred [
     (fullscreen, windowFlagFullscreen),
     (True, windowFlagOpenGL),
     (borderless, windowFlagBorderless),
@@ -65,4 +65,4 @@ glwindowflags fullscreen borderless input_grabbed maximized highdpi =
     (maximized, windowFlagMaximized),
     (highdpi, windowFlagAllowHighDPI)]
 
-glSetAttrs attrs = foldr (>>) (return ()) [glSetAttribute attr val >>= checkRet desc | (desc, attr, val) <- attrs]
+glSetAttrs attrs = sequence_ [glSetAttribute attr val >>= checkRet desc | (desc, attr, val) <- attrs]

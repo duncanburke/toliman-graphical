@@ -29,12 +29,12 @@ data GraphicalState = GraphicalState
 graphicalMain :: GameConfig -> IO ()
 graphicalMain GameConfig {asset_config,ui_config,graphics_config} =
   runBracketM $ do
-    bracketM_ (initSDL $ graphics_config) finalSDL
-    bracketM_ (initVideo $ graphics_config) finalVideo
+    bracketM_ (initSDL graphics_config) finalSDL
+    bracketM_ (initVideo graphics_config) finalVideo
     evstate_ <- bracketM initEvents finalEvents
-    uistate_ <- bracketM (initUIState $ ui_config) finalUIState
+    uistate_ <- bracketM (initUIState ui_config) finalUIState
     gstate_ <- bracketM initGameState finalGameState
-    astate_ <- bracketM (initAssetState $ asset_config) (finalAssetState)
+    astate_ <- bracketM (initAssetState asset_config) finalAssetState
     win_title <- bracketM (newCString "OpenCentauri") free
     window_ <- bracketM (initWindow graphics_config win_title) finalWindow
     glctx_ <- bracketM (initGLContext graphics_config window_) finalGLContext
@@ -72,7 +72,7 @@ initSDL :: GraphicsConfig -> IO ()
 initSDL cfg = do
   SDL.logInfoApplication "sdl init"
   checkRet "sdl_init" =<< SDL.init 0
-  foldr (>>) (return ()) [ checkError "sdl_log_pri" $ SDL.logSetPriority cat pri | (cat,pri) <- (sdl_log_pri cfg)]
+  sequence_ [ checkError "sdl_log_pri" $ SDL.logSetPriority cat pri | (cat,pri) <- sdl_log_pri cfg]
 
 finalSDL :: IO ()
 finalSDL = do
@@ -84,9 +84,9 @@ initVideo cfg = do
     SDL.logInfoApplication "video init"
     checkRet "sdl_subsys_video_init" =<< SDL.initSubSystem initFlagVideo
     runBracketM $ do
-      driver <- case (driver cfg) of
+      driver <- case driver cfg of
         "" -> lift $ return nullPtr
-        _ -> bracketM (newCString $ driver cfg) (free)
+        _ -> bracketM (newCString $ driver cfg) free
       return $ checkRet "video_init" =<< SDL.videoInit driver
     glSetAttrs $ glframebuffer 8 8 8 8 24 8
     glSetAttrs $ gldoublebuffer True

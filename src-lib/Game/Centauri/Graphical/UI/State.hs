@@ -175,8 +175,7 @@ initUIElems cfg = do
     elem_map = elem_map_ }
 
 finalUIElems :: UIInputElems -> IO ()
-finalUIElems el = do
-  return ()
+finalUIElems el = return ()
 
 uiStartCaptureInput :: UIState -> IO UIState
 uiStartCaptureInput uistate = do
@@ -202,7 +201,7 @@ uiSendEngineCommand cmd =
 refreshInputState :: SDL.Window -> StateT UIState IO ()
 refreshInputState win = do
   st <- State.get
-  (lift $ reloadSDLInputState win (sdl_input_state st)) >>=
+  lift (reloadSDLInputState win (sdl_input_state st)) >>=
    \sdl_st -> put st{sdl_input_state = sdl_st}
 
 uiMouseMotionEvent :: Int -> Int -> Int -> Int -> State UIState ()
