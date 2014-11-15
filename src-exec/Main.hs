@@ -1,7 +1,5 @@
 
-import Game.Centauri.Graphical
-import Game.Centauri.Configuration
+import Game.Toliman.Graphical (graphicalMain)
 
 main :: IO ()
-main = do cfg <- loadGameConfig ""
-          graphicalMain cfg
+main = graphicalMain
