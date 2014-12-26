@@ -2,16 +2,13 @@
 
 module Game.Toliman.Graphical.Rendering.Types where
 
-import Data.IORef (IORef)
-import Control.Applicative (Applicative)
 import Data.Word (Word32)
+import Foreign.C.String (CString)
+import Foreign.C.Types (CInt)
 
 import qualified Graphics.UI.SDL as SDL (Window, GLContext)
-import Monad.Reader (MonadReader)
-import Control.Monad.Lift.IO (MonadIO)
 
 import Game.Toliman.Graphical.Internal.Types
-import Game.Toliman.Graphical.Internal.Errors
 
 data WindowFlags =
   WindowFlags {
@@ -51,23 +48,26 @@ data WindowPos =
 
 data WindowConfig =
   WindowConfig {
-    _win_title :: !String,
-    _win_pos :: !WindowPos,
-    _win_resolution :: !(Int,Int) }
+    _wincfg_title :: !String,
+    _wincfg_pos :: !(WindowPos, WindowPos),
+    _wincfg_resolution :: !(CInt, CInt),
+    _wincfg_flags :: !WindowFlags}
   deriving (Show)
 
 makeUnderscoreFields ''WindowConfig
 
 windowConfigDefault :: WindowConfig
 windowConfigDefault = WindowConfig {
-  _win_title = "Toliman",
-  _win_pos = WindowUndefined,
-  _win_resolution = (640,480) }
+  _wincfg_title = "Toliman",
+  _wincfg_pos = (WindowUndefined, WindowUndefined),
+  _wincfg_resolution = (640,480),
+  _wincfg_flags = windowFlagsDefault }
 
 data Window =
   Window {
     _win_handle :: !SDL.Window,
-    _win_config :: !WindowConfig }
+    _win_config :: !WindowConfig,
+    _win_title :: !CString}
   deriving (Show)
 
 makeUnderscoreFields ''Window
@@ -82,5 +82,3 @@ rendererStateDefault :: RendererState
 rendererStateDefault = RendererState {
   _rd_window = Nothing,
   _rd_glctx = Nothing }
-
-type MonadRenderer a = (MonadGraphicalError m, MonadReader (IORef RendererState) m, MonadIO m, Functor m, Applicative m) => m a

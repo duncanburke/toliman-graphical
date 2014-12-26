@@ -2,9 +2,11 @@
 
 module Game.Toliman.Graphical.Rendering.Window (
   toWindowFlags,
-  fromWindowFlags) where
+  fromWindowFlags,
+  fromWindowPos) where
 
 import Data.Bits ((.|.), (.&.))
+import Foreign.C.Types (CInt)
 
 import Graphics.UI.SDL
 import Control.Lens
@@ -32,3 +34,9 @@ fromWindowFlags :: WindowFlags -> SDL_WindowFlags
 fromWindowFlags fl =
   foldr (.) id [\s -> s .|. mask | (l,mask) <- windowFlagsMap, fl ^. l] $ 0
 
+fromWindowPos :: (WindowPos, WindowPos) -> (CInt,CInt)
+fromWindowPos (x,y) =
+  (fromWindowPos' x, fromWindowPos' y)
+  where fromWindowPos' :: WindowPos -> CInt
+        fromWindowPos' WindowCentred = SDL_WINDOWPOS_CENTERED
+        fromWindowPos' WindowUndefined = SDL_WINDOWPOS_UNDEFINED

@@ -37,15 +37,16 @@ library
                        dequeue
   exposed-modules:	   Game.Toliman.Graphical,
                        Game.Toliman.Graphical.Core,
+                       Game.Toliman.Graphical.Types,
+                       Game.Toliman.Graphical.State,
                        Game.Toliman.Graphical.SDL,
                        Game.Toliman.Graphical.SDL.Types,
-                       Game.Toliman.Graphical.Types,
+                       Game.Toliman.Graphical.SDL.Core,
                        Game.Toliman.Graphical.Rendering,
                        Game.Toliman.Graphical.Rendering.Types,
                        Game.Toliman.Graphical.Rendering.OpenGL,
                        Game.Toliman.Graphical.Rendering.OpenGL.Types,
                        Game.Toliman.Graphical.Rendering.OpenGL.Core,
-                       Game.Toliman.Graphical.Rendering.State,
                        Game.Toliman.Graphical.Rendering.Window
   other-modules:       Game.Toliman.Graphical.Internal.Types,
                        Game.Toliman.Graphical.Internal.Errors

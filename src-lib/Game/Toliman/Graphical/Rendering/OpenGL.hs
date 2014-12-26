@@ -4,10 +4,8 @@ module Game.Toliman.Graphical.Rendering.OpenGL
         module Game.Toliman.Graphical.Rendering.OpenGL.Types)
        where
 
-import Foreign.C.Types (CInt)
 
 import Graphics.Rendering.OpenGL.GL
-import Graphics.UI.SDL
 
 import Game.Toliman.Graphical.Rendering.OpenGL.Types
 
