@@ -3,7 +3,8 @@ import Test.Tasty
 import Test.Tasty.SmallCheck
 import Test.Tasty.HUnit
 
-main = defaultMain tests
+main :: IO ()
+main = defaultMain $ testGroup "Graphical" []
 
-tests :: TestTree
-tests = undefined
+
+

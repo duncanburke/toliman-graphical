@@ -32,34 +32,42 @@ library
                        utf8-string,
                        lens >= 4.6,
                        free,
-                       template-haskell
+                       template-haskell,
+                       sodium,
+                       dequeue
   exposed-modules:	   Game.Toliman.Graphical,
                        Game.Toliman.Graphical.Core,
+                       Game.Toliman.Graphical.SDL,
+                       Game.Toliman.Graphical.SDL.Types,
                        Game.Toliman.Graphical.Types,
                        Game.Toliman.Graphical.Rendering,
                        Game.Toliman.Graphical.Rendering.Types,
                        Game.Toliman.Graphical.Rendering.OpenGL,
-                       Game.Toliman.Graphical.Rendering.State
-  default-extensions:  TypeFamilies,
-                       RankNTypes,
-                       ImpredicativeTypes,
+                       Game.Toliman.Graphical.Rendering.OpenGL.Types,
+                       Game.Toliman.Graphical.Rendering.OpenGL.Core,
+                       Game.Toliman.Graphical.Rendering.State,
+                       Game.Toliman.Graphical.Rendering.Window
+  other-modules:       Game.Toliman.Graphical.Internal.Types,
+                       Game.Toliman.Graphical.Internal.Errors
+  default-extensions:  ViewPatterns,
+                       NamedFieldPuns,
+                       RecordWildCards,
                        GADTs,
-                       ScopedTypeVariables,
-                       FlexibleInstances,
-                       FlexibleContexts,
-                       MultiParamTypeClasses,
-                       FunctionalDependencies,
-                       TypeSynonymInstances,
                        DeriveDataTypeable,
                        DeriveFunctor,
                        DeriveFoldable,
                        DeriveTraversable,
-                       DeriveGeneric,
+                       MultiParamTypeClasses,
+                       FunctionalDependencies,
+                       FlexibleInstances,
+                       TypeSynonymInstances,
+                       TypeFamilies,
+                       ConstraintKinds,
+                       FlexibleContexts,
+                       RankNTypes,
+                       ScopedTypeVariables,
                        BangPatterns,
-                       TupleSections,
-                       DisambiguateRecordFields,
-                       RecordWildCards,
-                       NamedFieldPuns
+                       MultiWayIf
 executable toliman
   main-is:             Main.hs
   ghc-options:         -Wall
@@ -72,10 +80,12 @@ test-suite test
   default-language:    Haskell2010
   type:                exitcode-stdio-1.0
   hs-source-dirs:      tests
-  main-is:             test.hs
+  main-is:             main.hs
   build-depends:       base >= 4 && < 5,
                        tasty >= 0.10.0,
                        tasty-hunit >= 0.9,
                        tasty-smallcheck >= 0.8,
                        smallcheck >= 1.0,
-                       toliman-graphical
+                       toliman-graphical,
+                       layers,
+                       transformers
