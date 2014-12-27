@@ -29,15 +29,15 @@ toGLErrorFlag fl = if
 
 data GLAttrs =
   GLAttrs {
-    _gl_doublebuffer :: Bool,
-    _gl_debug :: Bool,
-    _gl_red_size :: CInt,
-    _gl_green_size :: CInt,
-    _gl_blue_size :: CInt,
-    _gl_alpha_size :: CInt,
-    _gl_depth_size :: CInt,
-    _gl_stencil_size :: CInt,
-    _gl_multisamples :: CInt }
+    _gl_doublebuffer :: !Bool,
+    _gl_debug :: !Bool,
+    _gl_red_size :: !CInt,
+    _gl_green_size :: !CInt,
+    _gl_blue_size :: !CInt,
+    _gl_alpha_size :: !CInt,
+    _gl_depth_size :: !CInt,
+    _gl_stencil_size :: !CInt,
+    _gl_multisamples :: !CInt }
   deriving (Show)
 
 makeUnderscoreFields ''GLAttrs
@@ -71,3 +71,20 @@ toGLAttrList GLAttrs {..} =
   where castBool :: Bool -> CInt
         castBool True = 1
         castBool False = 0
+
+data VSyncMode =
+  VSyncNone |
+  VSyncSynchronous |
+  VSyncAdaptive
+  deriving (Show)
+
+data GLConfig =
+  GLConfig {
+    _gl_vsync_mode :: !VSyncMode }
+  deriving (Show)
+
+makeUnderscoreFields ''GLConfig
+
+glConfigDefault :: GLConfig
+glConfigDefault = GLConfig {
+  _gl_vsync_mode = VSyncNone }

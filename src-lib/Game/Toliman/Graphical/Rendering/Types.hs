@@ -9,6 +9,9 @@ import Foreign.C.Types (CInt)
 import qualified Graphics.UI.SDL as SDL (Window, GLContext)
 
 import Game.Toliman.Graphical.Internal.Types
+import Game.Toliman.Graphical.Rendering.OpenGL.Types (
+  GLAttrs, glAttrsDefault)
+
 
 data WindowFlags =
   WindowFlags {
@@ -51,7 +54,8 @@ data WindowConfig =
     _wincfg_title :: !String,
     _wincfg_pos :: !(WindowPos, WindowPos),
     _wincfg_resolution :: !(CInt, CInt),
-    _wincfg_flags :: !WindowFlags}
+    _wincfg_flags :: !WindowFlags,
+    _wincfg_gl_attrs :: !GLAttrs }
   deriving (Show)
 
 makeUnderscoreFields ''WindowConfig
@@ -61,7 +65,8 @@ windowConfigDefault = WindowConfig {
   _wincfg_title = "Toliman",
   _wincfg_pos = (WindowUndefined, WindowUndefined),
   _wincfg_resolution = (640,480),
-  _wincfg_flags = windowFlagsDefault }
+  _wincfg_flags = windowFlagsDefault,
+  _wincfg_gl_attrs = glAttrsDefault }
 
 data Window =
   Window {

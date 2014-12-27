@@ -51,6 +51,7 @@ library
   other-modules:       Game.Toliman.Graphical.Internal.Types,
                        Game.Toliman.Graphical.Internal.Errors
   default-extensions:  ViewPatterns,
+                       PatternSynonyms,
                        NamedFieldPuns,
                        RecordWildCards,
                        GADTs,

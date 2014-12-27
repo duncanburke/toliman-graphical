@@ -26,13 +26,13 @@ type LogBuffer = BankersDequeue LogEntry
 type MonadLog = MonadState LogBuffer
 
 data SDLState = SDLState {
-  _sdl_global :: !Bool,
-  _sdl_video :: !Bool }
+  _sdl_init_sdl :: !Bool,
+  _sdl_init_video :: !Bool }
   deriving (Show)
 
 makeUnderscoreFields ''SDLState
 
 sdlStateDefault :: SDLState
 sdlStateDefault = SDLState {
-  _sdl_global = False,
-  _sdl_video = False }
+  _sdl_init_sdl = False,
+  _sdl_init_video = False }
