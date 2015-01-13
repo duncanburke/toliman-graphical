@@ -37,7 +37,7 @@ runPureLog st = do
   pureLogFlush buf
   return a
 
-type LogFnType = (MonadIO m) => String -> m ()
+type LogFnType = forall m. (MonadIO m) => String -> m ()
 logDebugApplication :: LogFnType
 logDebugAudio :: LogFnType
 logDebugError :: LogFnType
@@ -96,7 +96,7 @@ logErrorRender = logMessage' SDL_LOG_CATEGORY_RENDER SDL_LOG_PRIORITY_ERROR
 logErrorSystem = logMessage' SDL_LOG_CATEGORY_SYSTEM SDL_LOG_PRIORITY_ERROR
 logErrorVideo = logMessage' SDL_LOG_CATEGORY_VIDEO SDL_LOG_PRIORITY_ERROR
 
-type PureLogFnType = (MonadLog m) => String -> m ()
+type PureLogFnType = forall m. (MonadLog m) => String -> m ()
 logPureDebugApplication :: PureLogFnType
 logPureDebugAudio :: PureLogFnType
 logPureDebugError :: PureLogFnType

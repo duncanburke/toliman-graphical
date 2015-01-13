@@ -3,7 +3,6 @@
 module Game.Toliman.Graphical.Types where
 
 import Control.Monad.Lift.IO (MonadIO)
-import Control.Applicative (Applicative)
 
 import Monad.Mask (MonadMask)
 
@@ -28,6 +27,7 @@ graphicalStateDefault = GraphicalState {
   _gr_sdl = sdlStateDefault }
 
 type MonadGraphical a =
+  forall m.
   (MonadGraphicalError m,
    MonadRef GraphicalState m,
    MonadMask m,
