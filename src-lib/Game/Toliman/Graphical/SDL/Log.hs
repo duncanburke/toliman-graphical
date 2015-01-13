@@ -1,7 +1,12 @@
+{-# LANGUAGE ImpredicativeTypes #-}
 
 module Game.Toliman.Graphical.SDL.Log where
 
+import Prelude hiding (error)
+
 import Foreign.C.String (withCString)
+import Foreign.C.Types (CInt)
+import Control.Lens
 
 import Control.Monad.Lift.IO (MonadIO, liftIO)
 import Control.Monad.Trans.State (StateT, runStateT)
@@ -149,3 +154,17 @@ logPureErrorInput = pureLogMessage SDL_LOG_CATEGORY_INPUT SDL_LOG_PRIORITY_ERROR
 logPureErrorRender = pureLogMessage SDL_LOG_CATEGORY_RENDER SDL_LOG_PRIORITY_ERROR
 logPureErrorSystem = pureLogMessage SDL_LOG_CATEGORY_SYSTEM SDL_LOG_PRIORITY_ERROR
 logPureErrorVideo = pureLogMessage SDL_LOG_CATEGORY_VIDEO SDL_LOG_PRIORITY_ERROR
+
+logPrioritiesMap :: [(Lens' LogPriorities LogPriority, CInt)]
+logPrioritiesMap = [
+  (application, SDL_LOG_CATEGORY_APPLICATION),
+  (error, SDL_LOG_CATEGORY_APPLICATION),
+  (system, SDL_LOG_CATEGORY_SYSTEM),
+  (audio, SDL_LOG_CATEGORY_AUDIO),
+  (video, SDL_LOG_CATEGORY_VIDEO),
+  (render, SDL_LOG_CATEGORY_RENDER),
+  (input, SDL_LOG_CATEGORY_INPUT)]
+
+setLogPriorities :: (MonadIO m) => LogPriorities -> m ()
+setLogPriorities p =
+  liftIO $ sequence_ [logSetPriority c (p ^. l) | (l,c) <- logPrioritiesMap]

@@ -58,16 +58,16 @@ type GLAttrList = [(String,GLattr,CInt)]
 
 toGLAttrList :: GLAttrs -> GLAttrList
 toGLAttrList GLAttrs {..} =
-  [("GL_DOUBLEBUFFER",SDL_GL_DOUBLEBUFFER, castBool _gl_doublebuffer),
+  [("GL_DOUBLEBUFFER", SDL_GL_DOUBLEBUFFER, castBool _gl_doublebuffer),
    ("GL_DEBUG", SDL_GL_CONTEXT_FLAGS, if _gl_debug then SDL_GL_CONTEXT_DEBUG_FLAG else 0),
-   ("GL_RED_SIZE",SDL_GL_RED_SIZE, _gl_red_size),
-   ("GL_GREEN_SIZE",SDL_GL_GREEN_SIZE, _gl_green_size),
-   ("GL_BLUE_SIZE",SDL_GL_BLUE_SIZE, _gl_blue_size),
-   ("GL_ALPHA_SIZE",SDL_GL_ALPHA_SIZE, _gl_alpha_size),
-   ("GL_DEPTH_SIZE",SDL_GL_DEPTH_SIZE, _gl_depth_size),
-   ("GL_STENCIL_SIZE",SDL_GL_STENCIL_SIZE, _gl_stencil_size),
-   ("GL_MULTISAMPLEBUFFERS",SDL_GL_MULTISAMPLEBUFFERS, castBool (_gl_multisamples /= 0)),
-   ("GL_MULTISAMPLESAMPLES",SDL_GL_MULTISAMPLESAMPLES, _gl_multisamples)]
+   ("GL_RED_SIZE", SDL_GL_RED_SIZE, _gl_red_size),
+   ("GL_GREEN_SIZE", SDL_GL_GREEN_SIZE, _gl_green_size),
+   ("GL_BLUE_SIZE", SDL_GL_BLUE_SIZE, _gl_blue_size),
+   ("GL_ALPHA_SIZE", SDL_GL_ALPHA_SIZE, _gl_alpha_size),
+   ("GL_DEPTH_SIZE", SDL_GL_DEPTH_SIZE, _gl_depth_size),
+   ("GL_STENCIL_SIZE", SDL_GL_STENCIL_SIZE, _gl_stencil_size),
+   ("GL_MULTISAMPLEBUFFERS", SDL_GL_MULTISAMPLEBUFFERS, castBool (_gl_multisamples /= 0)),
+   ("GL_MULTISAMPLESAMPLES", SDL_GL_MULTISAMPLESAMPLES, _gl_multisamples)]
   where castBool :: Bool -> CInt
         castBool True = 1
         castBool False = 0
@@ -77,6 +77,11 @@ data VSyncMode =
   VSyncSynchronous |
   VSyncAdaptive
   deriving (Show)
+
+fromVSyncMode :: VSyncMode -> CInt
+fromVSyncMode VSyncNone = 0
+fromVSyncMode VSyncSynchronous = 1
+fromVSyncMode VSyncAdaptive = -1
 
 data GLConfig =
   GLConfig {

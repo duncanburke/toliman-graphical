@@ -4,19 +4,33 @@ module Game.Toliman.Graphical.Core (
 
 import Control.Monad.Trans.Except (ExceptT, runExceptT)
 
+import Control.Monad.Lift.IO (liftIO)
 import Monad.Try (bracket_)
+import Graphics.UI.SDL as SDL
+import Graphics.Rendering.OpenGL as GL
 
+import Monad.Ref (RefT, runRefT)
 import Game.Toliman.Graphical.Types (
   GraphicalState, graphicalStateDefault,
-  MonadGraphical )
+  MonadGraphical)
 import Game.Toliman.Graphical.State (
   initSDL, finalSDL,
   initSDLVideo,
   createWin,
-  createGLCtx )
-import Game.Toliman.Graphical.Rendering.Types (windowConfigDefault)
-import Game.Toliman.Graphical.Internal.Errors (TolimanGraphicalError)
-import Monad.Ref (RefT, runRefT)
+  createGLCtx)
+import Game.Toliman.Graphical.Rendering.Types (
+  windowConfigDefault)
+import Game.Toliman.Graphical.Rendering.Window (
+  swapWindow)
+import Game.Toliman.Graphical.Rendering.OpenGL.Types (
+  glConfigDefault)
+import Game.Toliman.Graphical.Internal.Errors (
+  TolimanGraphicalError)
+import Game.Toliman.Graphical.SDL (
+  setLogPriorities,
+  logPrioritiesUniform,
+  pattern SDL_LOG_PRIORITY_VERBOSE,
+  logDebugApplication)
 
 graphicalMain :: IO ()
 graphicalMain = do
@@ -26,10 +40,17 @@ graphicalMain = do
 graphicalMain' :: ExceptT TolimanGraphicalError (RefT GraphicalState IO) ()
 graphicalMain' = do
   bracket_ initSDL finalSDL $ do
+    setLogPriorities $ logPrioritiesUniform SDL_LOG_PRIORITY_VERBOSE
     initSDLVideo
     createWin windowConfigDefault
-    createGLCtx
+    createGLCtx glConfigDefault
     gameLoop
 
 gameLoop :: MonadGraphical ()
-gameLoop = return ()
+gameLoop = do
+  liftIO $ do
+    GL.clearColor $= GL.Color4 0 0 1 0
+    GL.clear [GL.ColorBuffer]
+  swapWindow
+  liftIO $ SDL.delay 1000
+  gameLoop

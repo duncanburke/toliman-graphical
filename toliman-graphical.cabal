@@ -42,6 +42,8 @@ library
                        Game.Toliman.Graphical.SDL,
                        Game.Toliman.Graphical.SDL.Types,
                        Game.Toliman.Graphical.SDL.Core,
+                       Game.Toliman.Graphical.SDL.Log,
+                       Game.Toliman.Graphical.SDL.Events,
                        Game.Toliman.Graphical.Rendering,
                        Game.Toliman.Graphical.Rendering.Types,
                        Game.Toliman.Graphical.Rendering.OpenGL,
