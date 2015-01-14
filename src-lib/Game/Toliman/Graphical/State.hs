@@ -2,6 +2,7 @@
 module Game.Toliman.Graphical.State (
   initSDL, finalSDL,
   initSDLVideo, finalSDLVideo,
+  initSDLEvents, finalSDLEvents,
   createWin, destroyWin,
   createGLCtx, destroyGLCtx
   ) where
@@ -10,6 +11,8 @@ import Data.Maybe (isNothing)
 import Control.Applicative ((<$>))
 import Foreign.C.String (newCString)
 import Foreign.Marshal.Alloc (free)
+import Foreign.Marshal.Array (mallocArray)
+import Foreign.Ptr (nullPtr)
 
 import Control.Monad.Lift.IO (liftIO)
 import Monad.Error (catchError, throwError)
@@ -47,6 +50,7 @@ finalSDL = mask_ $ do
    False -> return ()
    True -> do
      ensure (not <$> (access $ sdl.init_video)) finalSDLVideo
+     ensure (not <$> (access $ sdl.init_events)) finalSDLEvents
      liftIO SDL.quit
      (sdl.init_sdl) .* False
 
@@ -65,6 +69,23 @@ finalSDLVideo = mask_ $ do
      ensure (isNothing <$> (access $ renderer.window)) destroyWin
      liftIO . SDL.quitSubSystem $ SDL_INIT_VIDEO
      (sdl.init_video) .* False
+
+initSDLEvents :: MonadGraphical ()
+initSDLEvents = mask_ $ do
+  check "not init_events" $ not <$> (access $ sdl.init_events)
+  buf <- sdlCheckPtr' "malloc ev_buf" $ mallocArray sdlEvBufLen
+  (sdl.ev_buf) .* buf
+  (sdl.init_events) .* True
+
+
+finalSDLEvents :: MonadGraphical ()
+finalSDLEvents = mask_ $ do
+  p <- access $ sdl.ev_buf
+  if | p == nullPtr -> return ()
+     | otherwise -> do
+         liftIO $ free p
+         (sdl.ev_buf) .* nullPtr
+  (sdl.init_events) .* False
 
 -- | The 'createWin' function creates a new window. A window must not already exist.
 createWin :: WindowConfig -> MonadGraphical ()
@@ -112,4 +133,3 @@ destroyGLCtx = mask_ $ do
      ensure (isNothing <$> (access $ renderer.window)) destroyWin
      liftIO . glDeleteContext $ ctx
      (renderer.glctx) .* Nothing
-

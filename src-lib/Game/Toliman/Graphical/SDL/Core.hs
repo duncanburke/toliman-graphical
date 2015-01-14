@@ -1,6 +1,7 @@
 module Game.Toliman.Graphical.SDL.Core(
   sdlCheckRet, sdlCheckRet',
   sdlCheckPtr, sdlCheckPtr',
+  sdlCheckPred, sdlCheckPred',
   sdlGetError ) where
 
 import Foreign.C.Types (CInt)
@@ -30,6 +31,14 @@ sdlCheckPtr desc p
 
 sdlCheckPtr' :: (MonadGraphicalError m, MonadIO m) => String -> IO (Ptr a) -> m (Ptr a)
 sdlCheckPtr' desc m = sdlCheckPtr desc =<< (liftIO $ m)
+
+sdlCheckPred :: (MonadGraphicalError m, MonadIO m) => String -> Bool -> m ()
+sdlCheckPred desc p
+  | p = sdlGetError desc
+  | otherwise = return ()
+
+sdlCheckPred' :: (MonadGraphicalError m, MonadIO m) => String -> m Bool -> m ()
+sdlCheckPred' desc m = sdlCheckPred desc =<< m
 
 sdlGetError :: (MonadGraphicalError m, MonadIO m) => String -> m a
 sdlGetError desc = do
