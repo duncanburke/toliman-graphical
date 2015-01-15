@@ -41,7 +41,7 @@ initSDL :: MonadGraphical ()
 initSDL = mask_ $ do
   check "not init_sdl" $ not <$> (access $ sdl.init_sdl)
   _ <- sdlCheckRet' "init" . SDL.init $ 0
-  (sdl.init_sdl) .* True
+  (sdl.init_sdl) .*= True
 
 finalSDL :: MonadGraphical ()
 finalSDL = mask_ $ do
@@ -52,13 +52,13 @@ finalSDL = mask_ $ do
      ensure (not <$> (access $ sdl.init_video)) finalSDLVideo
      ensure (not <$> (access $ sdl.init_events)) finalSDLEvents
      liftIO SDL.quit
-     (sdl.init_sdl) .* False
+     (sdl.init_sdl) .*= False
 
 initSDLVideo :: MonadGraphical ()
 initSDLVideo = mask_ $ do
   check "not init_video" $ not <$> (access $ sdl.init_video)
   _ <- sdlCheckRet' "initVideo" . SDL.initSubSystem $ SDL_INIT_VIDEO
-  (sdl.init_video) .* True
+  (sdl.init_video) .*= True
 
 finalSDLVideo :: MonadGraphical ()
 finalSDLVideo = mask_ $ do
@@ -68,14 +68,14 @@ finalSDLVideo = mask_ $ do
    True -> do
      ensure (isNothing <$> (access $ renderer.window)) destroyWin
      liftIO . SDL.quitSubSystem $ SDL_INIT_VIDEO
-     (sdl.init_video) .* False
+     (sdl.init_video) .*= False
 
 initSDLEvents :: MonadGraphical ()
 initSDLEvents = mask_ $ do
   check "not init_events" $ not <$> (access $ sdl.init_events)
   buf <- sdlCheckPtr' "malloc ev_buf" $ mallocArray sdlEvBufLen
-  (sdl.ev_buf) .* buf
-  (sdl.init_events) .* True
+  (sdl.ev_buf) .*= buf
+  (sdl.init_events) .*= True
 
 
 finalSDLEvents :: MonadGraphical ()
@@ -84,8 +84,8 @@ finalSDLEvents = mask_ $ do
   if | p == nullPtr -> return ()
      | otherwise -> do
          liftIO $ free p
-         (sdl.ev_buf) .* nullPtr
-  (sdl.init_events) .* False
+         (sdl.ev_buf) .*= nullPtr
+  (sdl.init_events) .*= False
 
 -- | The 'createWin' function creates a new window. A window must not already exist.
 createWin :: WindowConfig -> MonadGraphical ()
@@ -99,7 +99,7 @@ createWin _win_config = mask_ $ do
         (x,y) = fromWindowPos $ _win_config ^. pos
         (w,h) = _win_config ^. resolution
     _win_handle <- sdlCheckPtr' "CreateWindow" $ createWindow _win_title x y w h flags'
-    (renderer.window) .* Just Window {..}
+    (renderer.window) .*= Just Window {..}
 
 -- | The 'destroyWin' function destroys the window if it exists, and any dependent state. This function is idempotent.
 destroyWin :: MonadGraphical ()
@@ -110,7 +110,7 @@ destroyWin = mask_ $ do
    Just win -> do
      liftIO . destroyWindow $ win ^. handle
      liftIO . free $ win ^. title
-     (renderer.window) .* Nothing
+     (renderer.window) .*= Nothing
 
 -- | The 'createGLCtx' function creates an OpenGL context for the existing window.
 -- This requires that 'window' has been initialised. An OpenGL context must not already exist.
@@ -119,7 +119,7 @@ createGLCtx GLConfig {..} = mask_ $ do
   check "isNothing glctx" $ isNothing <$> (access $ renderer.glctx)
   win <- getJust "window" . accessPrism $ renderer.window._Just.handle
   ctx <- sdlCheckPtr' "CreateContext" . glCreateContext $ win
-  (renderer.glctx) .* Just ctx
+  (renderer.glctx) .*= Just ctx
   _ <- sdlCheckRet' "gl_set_swap_interval" . glSetSwapInterval . fromVSyncMode $ _gl_vsync_mode
   return ()
 
@@ -132,4 +132,4 @@ destroyGLCtx = mask_ $ do
    Just ctx -> do
      ensure (isNothing <$> (access $ renderer.window)) destroyWin
      liftIO . glDeleteContext $ ctx
-     (renderer.glctx) .* Nothing
+     (renderer.glctx) .*= Nothing
