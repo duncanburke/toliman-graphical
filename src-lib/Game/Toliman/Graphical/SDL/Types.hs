@@ -29,11 +29,12 @@ type MonadLog = MonadState LogBuffer
 sdlEvBufLen :: (Integral a) => a
 sdlEvBufLen = 64
 
-data SDLState = SDLState {
-  _sdl_init_sdl :: !Bool,
-  _sdl_init_video :: !Bool,
-  _sdl_init_events :: !Bool,
-  _sdl_ev_buf :: !(Ptr SDL.Event) }
+data SDLState =
+  SDLState {
+    _sdl_init_sdl :: !Bool,
+    _sdl_init_video :: !Bool,
+    _sdl_init_events :: !Bool,
+    _sdl_ev_buf :: !(Ptr SDL.Event) }
   deriving (Show)
 
 makeUnderscoreFields ''SDLState
