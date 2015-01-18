@@ -12,19 +12,23 @@ import Game.Toliman.Graphical.Rendering.Types (RendererState,
                                                rendererStateDefault)
 import Game.Toliman.Graphical.SDL.Types (SDLState,
                                          sdlStateDefault)
+import Game.Toliman.Graphical.UI.Types(UIState,
+                                       uiStateDefault)
 import Monad.Ref (MonadRef(..))
 
 
 data GraphicalState = GraphicalState {
     _gr_renderer :: !RendererState,
-    _gr_sdl :: !SDLState}
+    _gr_sdl :: !SDLState,
+    _gr_ui :: !UIState }
 
 makeUnderscoreFields ''GraphicalState
 
 graphicalStateDefault :: GraphicalState
 graphicalStateDefault = GraphicalState {
   _gr_renderer = rendererStateDefault,
-  _gr_sdl = sdlStateDefault }
+  _gr_sdl = sdlStateDefault,
+  _gr_ui = uiStateDefault}
 
 type MonadGraphical a =
   forall m.
