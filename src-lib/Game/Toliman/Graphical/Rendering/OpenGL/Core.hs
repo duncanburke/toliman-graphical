@@ -3,7 +3,7 @@ module Game.Toliman.Graphical.Rendering.OpenGL.Core (
  glSetAttrs,
  glGetErrors ) where
 
-import Control.Applicative ((<$>))
+import Data.Functor ((<$>))
 
 import Monad.Error (throwError)
 import Control.Monad.Lift.IO (liftIO)

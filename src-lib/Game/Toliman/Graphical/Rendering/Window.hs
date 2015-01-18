@@ -8,17 +8,16 @@ module Game.Toliman.Graphical.Rendering.Window (
 
 import Data.Bits ((.|.), (.&.))
 import Foreign.C.Types (CInt)
+import Data.List (foldl')
 
 import Control.Monad.Lift.IO (liftIO)
 import Graphics.UI.SDL
 import Control.Lens
 
-
 import Game.Toliman.Internal.Lens
 import Game.Toliman.Graphical.Internal.Errors
 import Game.Toliman.Graphical.Types (MonadGraphical, renderer)
 import Game.Toliman.Graphical.Rendering.Types
-
 
 windowFlagsMap :: [(Lens' WindowFlags Bool, SDL_WindowFlags)]
 windowFlagsMap = [(fullscreen, SDL_WINDOW_FULLSCREEN),
@@ -34,12 +33,12 @@ windowFlagsMap = [(fullscreen, SDL_WINDOW_FULLSCREEN),
 
 toWindowFlags :: SDL_WindowFlags -> WindowFlags
 toWindowFlags fl =
-  foldr (.) id [\s -> s & l .~ (not $ mask .&. fl == 0) | (l,mask) <- windowFlagsMap] $
+  foldl' (.) id [\s -> s & l .~ (not $ mask .&. fl == 0) | (l,mask) <- windowFlagsMap] $
   windowFlagsDefault
 
 fromWindowFlags :: WindowFlags -> SDL_WindowFlags
 fromWindowFlags fl =
-  foldr (.) id [\s -> s .|. mask | (l,mask) <- windowFlagsMap, fl ^. l] $ 0
+  foldl' (.) id [\s -> s .|. mask | (l,mask) <- windowFlagsMap, fl ^. l] $ 0
 
 fromWindowPos :: (WindowPos, WindowPos) -> (CInt,CInt)
 fromWindowPos (x,y) =

@@ -49,7 +49,10 @@ library
                        Game.Toliman.Graphical.Rendering.OpenGL,
                        Game.Toliman.Graphical.Rendering.OpenGL.Types,
                        Game.Toliman.Graphical.Rendering.OpenGL.Core,
-                       Game.Toliman.Graphical.Rendering.Window
+                       Game.Toliman.Graphical.Rendering.Window,
+                       Game.Toliman.Graphical.UI,
+                       Game.Toliman.Graphical.UI.Types,
+                       Game.Toliman.Graphical.UI.Events
   other-modules:       Game.Toliman.Graphical.Internal.Types,
                        Game.Toliman.Graphical.Internal.Errors
   default-extensions:  ViewPatterns,

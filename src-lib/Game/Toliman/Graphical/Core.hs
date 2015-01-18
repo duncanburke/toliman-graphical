@@ -28,8 +28,7 @@ import Game.Toliman.Graphical.Internal.Errors (
   TolimanGraphicalError)
 import Game.Toliman.Graphical.SDL (
   setLogPriorities,
-  logPrioritiesUniform,
-  pattern SDL_LOG_PRIORITY_VERBOSE)
+  logPrioritiesUniform)
 
 graphicalMain :: IO ()
 graphicalMain = do

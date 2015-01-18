@@ -1,6 +1,6 @@
 module Game.Toliman.Graphical.SDL.Events where
 
-import Control.Applicative ((<$>))
+import Data.Functor ((<$>))
 import Foreign.Storable (peekElemOff)
 
 import Control.Monad.Lift.IO (liftIO)

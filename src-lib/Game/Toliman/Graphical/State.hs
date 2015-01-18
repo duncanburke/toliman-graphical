@@ -8,7 +8,7 @@ module Game.Toliman.Graphical.State (
   ) where
 
 import Data.Maybe (isNothing)
-import Control.Applicative ((<$>))
+import Data.Functor ((<$>))
 import Foreign.C.String (newCString)
 import Foreign.Marshal.Alloc (free)
 import Foreign.Marshal.Array (mallocArray)
@@ -39,7 +39,7 @@ import Game.Toliman.Graphical.Rendering.OpenGL.Types (
 
 initSDL :: MonadGraphical ()
 initSDL = mask_ $ do
-  check "not init_sdl" $ not <$> (access $ sdl.init_sdl)
+  check "initSDL: not init_sdl" $ not <$> (access $ sdl.init_sdl)
   _ <- sdlCheckRet' "init" . SDL.init $ 0
   (sdl.init_sdl) .*= True
 
@@ -56,8 +56,8 @@ finalSDL = mask_ $ do
 
 initSDLVideo :: MonadGraphical ()
 initSDLVideo = mask_ $ do
-  check "not init_video" $ not <$> (access $ sdl.init_video)
-  _ <- sdlCheckRet' "initVideo" . SDL.initSubSystem $ SDL_INIT_VIDEO
+  check "initSDLVideo: not init_video" $ not <$> (access $ sdl.init_video)
+  _ <- sdlCheckRet' "initSDLVideo: initVideo" . SDL.initSubSystem $ SDL_INIT_VIDEO
   (sdl.init_video) .*= True
 
 finalSDLVideo :: MonadGraphical ()
@@ -72,8 +72,8 @@ finalSDLVideo = mask_ $ do
 
 initSDLEvents :: MonadGraphical ()
 initSDLEvents = mask_ $ do
-  check "not init_events" $ not <$> (access $ sdl.init_events)
-  buf <- sdlCheckPtr' "malloc ev_buf" $ mallocArray sdlEvBufLen
+  check "initSDLEvents: not init_events" $ not <$> (access $ sdl.init_events)
+  buf <- sdlCheckPtr' "initSDLEvents: malloc ev_buf" $ mallocArray sdlEvBufLen
   (sdl.ev_buf) .*= buf
   (sdl.init_events) .*= True
 
@@ -90,15 +90,15 @@ finalSDLEvents = mask_ $ do
 -- | The 'createWin' function creates a new window. A window must not already exist.
 createWin :: WindowConfig -> MonadGraphical ()
 createWin _win_config = mask_ $ do
-  check "sdl video" $ access $ sdl.init_video
-  check "isNothing window" $ isNothing <$> (access $ renderer.window)
+  check "createWin: sdl video" $ access $ sdl.init_video
+  check "createWin: isNothing window" $ isNothing <$> (access $ renderer.window)
   glSetAttrs . toGLAttrList $ _win_config ^. gl_attrs
   _win_title <- liftIO . newCString $ _win_config ^. title
   flip catchError (\e -> (liftIO . free $ _win_title) >> throwError e) $ do
     let flags' = fromWindowFlags $ _win_config ^. flags
         (x,y) = fromWindowPos $ _win_config ^. pos
         (w,h) = _win_config ^. resolution
-    _win_handle <- sdlCheckPtr' "CreateWindow" $ createWindow _win_title x y w h flags'
+    _win_handle <- sdlCheckPtr' "createWin: CreateWindow" $ createWindow _win_title x y w h flags'
     (renderer.window) .*= Just Window {..}
 
 -- | The 'destroyWin' function destroys the window if it exists, and any dependent state. This function is idempotent.
@@ -116,11 +116,11 @@ destroyWin = mask_ $ do
 -- This requires that 'window' has been initialised. An OpenGL context must not already exist.
 createGLCtx :: GLConfig -> MonadGraphical ()
 createGLCtx GLConfig {..} = mask_ $ do
-  check "isNothing glctx" $ isNothing <$> (access $ renderer.glctx)
-  win <- getJust "window" . accessPrism $ renderer.window._Just.handle
-  ctx <- sdlCheckPtr' "CreateContext" . glCreateContext $ win
+  check "createGLCtx: isNothing glctx" $ isNothing <$> (access $ renderer.glctx)
+  win <- getJust "createGLCtx: window" . accessPrism $ renderer.window._Just.handle
+  ctx <- sdlCheckPtr' "createGLCtx: CreateContext" . glCreateContext $ win
   (renderer.glctx) .*= Just ctx
-  _ <- sdlCheckRet' "gl_set_swap_interval" . glSetSwapInterval . fromVSyncMode $ _gl_vsync_mode
+  _ <- sdlCheckRet' "createGLCtx: gl_set_swap_interval" . glSetSwapInterval . fromVSyncMode $ _gl_vsync_mode
   return ()
 
 -- | The 'destroyGLCtx' function destroys the OpenGL context if it exists, and any dependent state. This function is idempotent.
