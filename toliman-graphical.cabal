@@ -79,6 +79,7 @@ library
 executable toliman
   main-is:             Main.hs
   ghc-options:         -Wall
+                       -threaded
   hs-source-dirs:      src-exec
   build-depends:       base,
                        toliman-graphical
