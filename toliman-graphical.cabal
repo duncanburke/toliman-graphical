@@ -53,9 +53,11 @@ library
                        Game.Toliman.Graphical.UI,
                        Game.Toliman.Graphical.UI.Types,
                        Game.Toliman.Graphical.UI.Widgets,
-                       Game.Toliman.Graphical.UI.Events
-  other-modules:       Game.Toliman.Graphical.Internal.Types,
+                       Game.Toliman.Graphical.UI.Events,
+                       Game.Toliman.Graphical.UI.State,
+                       Game.Toliman.Graphical.Internal.Types,
                        Game.Toliman.Graphical.Internal.Errors
+  other-modules:       
   default-extensions:  ViewPatterns,
                        PatternSynonyms,
                        NamedFieldPuns,

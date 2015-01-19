@@ -5,7 +5,8 @@ module Game.Toliman.Graphical.Internal.Errors
         MonadGraphicalError,
         getJust,
         ensure,
-        check) where
+        check,
+        checkError) where
 
 import Control.Exception
 import Data.Typeable
@@ -49,3 +50,7 @@ check desc m = do
   p <- m
   if | not p -> throwError $ BadState desc
      | otherwise -> return ()
+
+checkError :: (MonadGraphicalError m) => Either TolimanGraphicalError a-> m a
+checkError (Left e) = throwError e
+checkError (Right a) = return a
