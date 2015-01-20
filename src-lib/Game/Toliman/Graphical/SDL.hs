@@ -1,17 +1,19 @@
+
 module Game.Toliman.Graphical.SDL (
-  module Game.Toliman.Graphical.SDL.Types,
-  module Game.Toliman.Graphical.SDL.Core,
-  module Game.Toliman.Graphical.SDL.Log,
-  module Game.Toliman.Graphical.SDL.Events,
-  module Graphics.UI.SDL.Enum
-  ) where
+  module Types,
+  module Core,
+  module Log,
+  module Events,
+  module Graphics.UI.SDL) where
 
-import Game.Toliman.Graphical.SDL.Types
-import Game.Toliman.Graphical.SDL.Core
-import Game.Toliman.Graphical.SDL.Log
-import Game.Toliman.Graphical.SDL.Events
+import Game.Toliman.Graphical.SDL.Types as Types
+import Game.Toliman.Graphical.SDL.Core as Core
+import Game.Toliman.Graphical.SDL.Log as Log
+import Game.Toliman.Graphical.SDL.Events as Events
 
-import Graphics.UI.SDL.Enum (
+
+import Graphics.UI.SDL (
+  Window, GLContext,
   pattern SDL_LOG_PRIORITY_VERBOSE,
   pattern SDL_LOG_PRIORITY_DEBUG,
   pattern SDL_LOG_PRIORITY_INFO,

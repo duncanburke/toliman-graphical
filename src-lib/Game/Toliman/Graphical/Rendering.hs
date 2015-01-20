@@ -1,6 +1,11 @@
 
 module Game.Toliman.Graphical.Rendering (
-  module Game.Toliman.Graphical.Rendering.Types
-  ) where
+  module Types,
+  module OpenGL,
+  module Window) where
 
-import Game.Toliman.Graphical.Rendering.Types
+import Game.Toliman.Graphical.Rendering.Types as Types
+
+import Game.Toliman.Graphical.Rendering.OpenGL as OpenGL
+
+import Game.Toliman.Graphical.Rendering.Window as Window

@@ -17,25 +17,23 @@ import Foreign.Ptr (nullPtr)
 import Control.Monad.Lift.IO (liftIO)
 import Monad.Error (catchError, throwError)
 import Monad.Mask (mask_)
-import Graphics.UI.SDL as SDL (
-  init, quit,
-  initSubSystem, quitSubSystem,
-  pattern SDL_INIT_VIDEO,
-  createWindow, destroyWindow,
-  glCreateContext, glDeleteContext,
-  glSetSwapInterval)
+
+import Graphics.UI.SDL as SDL
 
 import Game.Toliman.Internal.Lens
 import Game.Toliman.Graphical.Internal.Errors
-import Game.Toliman.Graphical.SDL
+
 import Game.Toliman.Graphical.Types
-import Game.Toliman.Graphical.Rendering
-import Game.Toliman.Graphical.Rendering.Window (
+
+import Game.Toliman.Graphical.Rendering as Rendering (
+  WindowConfig, title, pos, resolution, flags, gl_attrs,
+  Window(..), handle, title,
+  window, glctx,
+  glSetAttrs, toGLAttrList,
+  GLConfig(..), fromVSyncMode,
   fromWindowFlags, fromWindowPos)
-import Game.Toliman.Graphical.Rendering.OpenGL (
-  toGLAttrList, glSetAttrs)
-import Game.Toliman.Graphical.Rendering.OpenGL.Types (
-  GLConfig(..), fromVSyncMode)
+import Game.Toliman.Graphical.SDL.Types
+import Game.Toliman.Graphical.SDL.Core
 
 initSDL :: MonadGraphical ()
 initSDL = mask_ $ do
@@ -104,7 +102,7 @@ createWin _win_config = mask_ $ do
 -- | The 'destroyWin' function destroys the window if it exists, and any dependent state. This function is idempotent.
 destroyWin :: MonadGraphical ()
 destroyWin = mask_ $ do
-  win' :: Maybe Window <- access $ renderer.window
+  win' :: Maybe Rendering.Window <- access $ renderer.window
   case win' of
    Nothing -> return ()
    Just win -> do

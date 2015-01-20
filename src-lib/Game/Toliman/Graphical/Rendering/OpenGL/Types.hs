@@ -4,7 +4,13 @@ module Game.Toliman.Graphical.Rendering.OpenGL.Types where
 
 import Foreign.C.Types (CInt)
 
-import Graphics.Rendering.OpenGL.Raw.Core31
+import Graphics.Rendering.OpenGL.Raw.Core31 (
+  GLenum,
+  gl_INVALID_ENUM,
+  gl_INVALID_VALUE,
+  gl_INVALID_OPERATION,
+  gl_INVALID_FRAMEBUFFER_OPERATION,
+  gl_OUT_OF_MEMORY)
 import Graphics.UI.SDL
 
 import Game.Toliman.Graphical.Internal.Types

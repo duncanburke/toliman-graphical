@@ -2,33 +2,21 @@
 module Game.Toliman.Graphical.Core (
   graphicalMain) where
 
+import Data.Functor ((<$>))
 import Control.Monad.Trans.Except (ExceptT, runExceptT)
-
 import Control.Monad.Lift.IO (liftIO)
 import Monad.Try (bracket_)
-import Graphics.UI.SDL as SDL
+import Monad.Ref (RefT, runRefT)
 import Graphics.Rendering.OpenGL as GL
 
-import Monad.Ref (RefT, runRefT)
-import Game.Toliman.Graphical.Types (
-  GraphicalState, graphicalStateDefault,
-  MonadGraphical)
-import Game.Toliman.Graphical.State (
-  initSDL, finalSDL,
-  initSDLVideo,
-  createWin,
-  createGLCtx)
-import Game.Toliman.Graphical.Rendering.Types (
-  windowConfigDefault)
-import Game.Toliman.Graphical.Rendering.Window (
-  swapWindow)
-import Game.Toliman.Graphical.Rendering.OpenGL.Types (
-  glConfigDefault)
-import Game.Toliman.Graphical.Internal.Errors (
-  TolimanGraphicalError)
-import Game.Toliman.Graphical.SDL (
-  setLogPriorities,
-  logPrioritiesUniform)
+import Game.Toliman.Internal.Lens
+import Game.Toliman.Graphical.Internal.Errors
+import Game.Toliman.Graphical.Types
+import Game.Toliman.Graphical.State
+
+import qualified Game.Toliman.Graphical.Rendering as Rendering
+import qualified Game.Toliman.Graphical.SDL as SDL
+import qualified Game.Toliman.Graphical.UI as UI
 
 graphicalMain :: IO ()
 graphicalMain = do
@@ -38,10 +26,10 @@ graphicalMain = do
 graphicalMain' :: ExceptT TolimanGraphicalError (RefT GraphicalState IO) ()
 graphicalMain' = do
   bracket_ initSDL finalSDL $ do
-    setLogPriorities $ logPrioritiesUniform SDL_LOG_PRIORITY_VERBOSE
+    SDL.setLogPriorities $ SDL.logPrioritiesUniform SDL.SDL_LOG_PRIORITY_VERBOSE
     initSDLVideo
-    createWin windowConfigDefault
-    createGLCtx glConfigDefault
+    createWin Rendering.windowConfigDefault
+    createGLCtx Rendering.glConfigDefault
     gameLoop
 
 gameLoop :: MonadGraphical ()
@@ -49,6 +37,5 @@ gameLoop = do
   liftIO $ do
     GL.clearColor $= GL.Color4 0 0 1 0
     GL.clear [GL.ColorBuffer]
-  swapWindow
-  liftIO $ SDL.delay 1000
+  Rendering.swapWindow
   gameLoop
