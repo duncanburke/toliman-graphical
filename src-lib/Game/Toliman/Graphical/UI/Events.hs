@@ -1,15 +1,21 @@
 
-module Game.Toliman.Graphical.UI.Events where
+module Game.Toliman.Graphical.UI.Events (
+  processEvents,
+  translateSDLEvent) where
 
-import Control.Monad.Lift.IO (liftIO)
-import FRP.Sodium as Sodium
+import Graphics.UI.SDL as SDL (
+  Event(..),
+  pattern SDL_KEYDOWN
+  )
 
-import Game.Toliman.Graphical.Types
+import Game.Toliman.Internal.Sodium
+import Game.Toliman.Internal.Lens
 import Game.Toliman.Graphical.UI.Types
 
+processEvents :: [InputEvent] -> MonadUI ()
+processEvents ev = do
+  e <- access input_channel
+  sync $ sequence_ $ map (e ^. push) ev
 
-processEvents :: [UIInputEvent] -> Reactive a -> MonadGraphical ()
-processEvents ev r = do
-  res <- liftIO $ sync $ do
-    r
-  return ()
+translateSDLEvent :: SDL.Event -> InputEvent
+translateSDLEvent = SDLEvent

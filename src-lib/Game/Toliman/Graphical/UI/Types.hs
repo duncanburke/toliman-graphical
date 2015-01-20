@@ -15,43 +15,44 @@ import Game.Toliman.Internal.Sodium
 --   bottom-left of the screen. The coordinate of a screen
 --   element is measured at the bottom-left corner.
 
-data ScreenCoord = Sxy !Int !Int
-                 deriving (Show, Eq)
+data ScreenPos = Sxy !Int !Int deriving (Show, Eq)
 
-data UISize = UIxy !Int !Int
-            deriving (Show, Eq)
+data WidgetPos = Wxy !Int !Int deriving (Show, Eq)
 
-newtype UIz = UIz Int
-              deriving (Show, Eq, Ord)
+data WidgetSize = WidgetSize !Int !Int deriving (Show, Eq)
+
+-- | Z-level of a widget. Screen-space is a right-handed coordinate system,
+-- increasing z moves out of the screen.
+
+newtype WidgetZ = Z Int deriving (Show, Eq, Ord)
 
 
-data UIKeyBoardEvent =
+data KeyBoardEvent =
   KeyDown Keysym |
   KeyUp Keysym |
   KeyPress Keysym deriving (Show)
 
-
-data UIKeyboardState =
-  UIKeyboardState {}
+data KeyboardState =
+  KeyboardState {}
   deriving (Show)
 
-makeUnderscoreFields ''UIKeyboardState
+makeUnderscoreFields ''KeyboardState
 
-data UIMouseButton =
-  MouseLeft |
-  MouseRight deriving (Show)
+data MouseButton =
+  LeftButton |
+  RightButton deriving (Show)
 
-data UIMouseEvent =
+data MouseEvent =
   MouseEnter |
   MouseLeave |
-  MouseMove ScreenCoord |
-  MouseDown ScreenCoord UIMouseButton |
-  MouseUp ScreenCoord UIMouseButton |
-  MouseClick UIMouseButton deriving (Show)
+  MouseMove WidgetPos |
+  MouseDown WidgetPos MouseButton |
+  MouseUp WidgetPos MouseButton |
+  MouseClick MouseButton deriving (Show)
 
-data UIInputEvent =
-  UIKeyBoardEvent |
-  UIMouseEvent deriving (Show)
+data InputEvent =
+  SDLEvent SDL.Event
+  deriving (Show)
 
 data UIMouseState =
   UIMouseState {}
@@ -59,35 +60,50 @@ data UIMouseState =
 
 makeUnderscoreFields ''UIMouseState
 
-newtype UIWidgetID = UIWidgetID Int
+newtype WidgetID = WidgetID Int
                    deriving (Show, Eq, Ord);
 
-data UIWidget a = UIWidget {
-  _widget_id :: !UIWidgetID,
-  _widget_pos :: !ScreenCoord,
-  _widget_size :: !UISize,
-  _widget_z :: !UIz,
-  _widget_behaviour :: SodiumBehaviour a}
+data Widget a = Widget {
+  _widget_id :: !WidgetID,
+  _widget_pos :: !ScreenPos,
+  _widget_size :: !WidgetSize,
+  _widget_z :: !WidgetZ,
+  _widget_parent :: !(Maybe WidgetID),
+  _widget_behaviour :: !(SodiumBehaviour a)}
 
-makeUnderscoreFields ''UIWidget
+makeUnderscoreFields ''Widget
 
-data SomeUIWidget = forall a. MkWidget (UIWidget a)
+data SomeWidget = forall a. MkWidget (Widget a)
+
+data InputState' =
+  Wait |
+  MouseLeft
+
+data InputState = InputState {
+  _ui_focus :: !(Maybe WidgetID)}
+
+makeUnderscoreFields ''InputState
+
+inputStateDefault :: InputState
+inputStateDefault = InputState {
+  _ui_focus = Nothing}
 
 data UIState' =
   UIState' {
-    _ui_reactor :: !(Reactive ()),
-    _ui_widgets :: Map UIWidgetID SomeUIWidget,
-    _ui_widget_tree :: RTree UIWidgetID,
-    _ui_next_id :: UIWidgetID }
+    _ui_widgets :: !(Map WidgetID SomeWidget),
+    _ui_widget_tree :: !(RTree WidgetID),
+    _ui_next_id :: !WidgetID,
+    _ui_input_channel :: !(SodiumEvent InputEvent),
+    _ui_input_state :: !(SodiumBehaviour InputState)}
 
 makeUnderscoreFields ''UIState'
-
-type MonadUI a =
-  forall m.
-  (MonadGraphicalError m,
-   MonadRef UIState' m) => m a
 
 type UIState = Maybe UIState'
 
 uiStateDefault :: UIState
 uiStateDefault = Nothing
+
+type MonadUI a =
+  forall m.
+  (MonadGraphicalError m,
+   MonadRef UIState' m) => m a

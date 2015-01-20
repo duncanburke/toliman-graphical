@@ -5,6 +5,7 @@ module Game.Toliman.Graphical.State (
   initSDLEvents, finalSDLEvents,
   createWin, destroyWin,
   createGLCtx, destroyGLCtx,
+  initUIState, finalUIState,
   initClock
   ) where
 
@@ -35,6 +36,7 @@ import Game.Toliman.Graphical.Rendering as Rendering (
   fromWindowFlags, fromWindowPos)
 import Game.Toliman.Graphical.SDL.Types
 import Game.Toliman.Graphical.SDL.Core
+import Game.Toliman.Graphical.UI (initUIState, finalUIState)
 
 initSDL :: MonadGraphical ()
 initSDL = mask_ $ do
@@ -75,7 +77,6 @@ initSDLEvents = mask_ $ do
   buf <- sdlCheckPtr' "initSDLEvents: malloc ev_buf" $ mallocArray sdlEvBufLen
   (sdl.ev_buf) .*= buf
   (sdl.init_events) .*= True
-
 
 finalSDLEvents :: MonadGraphical ()
 finalSDLEvents = mask_ $ do
