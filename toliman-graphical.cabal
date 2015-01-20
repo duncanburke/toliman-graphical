@@ -34,7 +34,9 @@ library
                        free,
                        template-haskell,
                        sodium,
-                       dequeue
+                       dequeue,
+                       system-time-monotonic,
+                       time >= 1.5
   exposed-modules:	   Game.Toliman.Graphical,
                        Game.Toliman.Graphical.Core,
                        Game.Toliman.Graphical.Types,

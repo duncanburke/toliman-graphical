@@ -7,6 +7,8 @@ import Control.Monad.Trans.Except (ExceptT, runExceptT)
 import Control.Monad.Lift.IO (liftIO)
 import Monad.Try (bracket_)
 import Monad.Ref (RefT, runRefT)
+
+import System.Time.Monotonic (clockGetTime)
 import Graphics.Rendering.OpenGL as GL
 
 import Game.Toliman.Internal.Lens
@@ -28,12 +30,14 @@ graphicalMain' = do
   bracket_ initSDL finalSDL $ do
     SDL.setLogPriorities $ SDL.logPrioritiesUniform SDL.SDL_LOG_PRIORITY_VERBOSE
     initSDLVideo
+    initClock
     createWin Rendering.windowConfigDefault
     createGLCtx Rendering.glConfigDefault
     gameLoop
 
 gameLoop :: MonadGraphical ()
 gameLoop = do
+  (time .*=) =<< liftIO . clockGetTime =<< getJust "gameLoop: clock" (access clock)
   liftIO $ do
     GL.clearColor $= GL.Color4 0 0 1 0
     GL.clear [GL.ColorBuffer]

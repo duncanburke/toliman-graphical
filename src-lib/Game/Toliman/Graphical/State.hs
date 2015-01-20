@@ -4,7 +4,8 @@ module Game.Toliman.Graphical.State (
   initSDLVideo, finalSDLVideo,
   initSDLEvents, finalSDLEvents,
   createWin, destroyWin,
-  createGLCtx, destroyGLCtx
+  createGLCtx, destroyGLCtx,
+  initClock
   ) where
 
 import Data.Maybe (isNothing)
@@ -13,12 +14,12 @@ import Foreign.C.String (newCString)
 import Foreign.Marshal.Alloc (free)
 import Foreign.Marshal.Array (mallocArray)
 import Foreign.Ptr (nullPtr)
-
 import Control.Monad.Lift.IO (liftIO)
 import Monad.Error (catchError, throwError)
 import Monad.Mask (mask_)
 
 import Graphics.UI.SDL as SDL
+import System.Time.Monotonic as Monotonic
 
 import Game.Toliman.Internal.Lens
 import Game.Toliman.Graphical.Internal.Errors
@@ -131,3 +132,7 @@ destroyGLCtx = mask_ $ do
      ensure (isNothing <$> (access $ renderer.window)) destroyWin
      liftIO . glDeleteContext $ ctx
      (renderer.glctx) .*= Nothing
+
+
+initClock :: MonadGraphical ()
+initClock = liftIO Monotonic.newClock >>= ((clock._Just) .*=)
