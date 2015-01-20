@@ -4,12 +4,12 @@ module Game.Toliman.Graphical.SDL.Types where
 
 import Foreign.C.Types (CInt)
 import Foreign.Ptr (Ptr, nullPtr)
-
-import Data.Dequeue
-import Graphics.UI.SDL as SDL
+import Data.Dequeue (BankersDequeue)
 import Monad.State (MonadState)
 
 import Game.Toliman.Graphical.Internal.Types
+
+import Graphics.UI.SDL as SDL
 
 type LogCategory = CInt
 type LogMessage = String
