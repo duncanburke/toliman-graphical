@@ -139,4 +139,4 @@ destroyGLCtx = mask_ $ do
 
 
 initClock :: MonadGraphical ()
-initClock = liftIO Monotonic.newClock >>= ((clock._Just) .*=)
+initClock = ((clock._Just) .*=) =<< liftIO Monotonic.newClock

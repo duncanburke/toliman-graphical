@@ -2,7 +2,6 @@
 module Game.Toliman.Graphical.Core (
   graphicalMain) where
 
-import Data.Functor ((<$>))
 import Control.Monad.Trans.Except (ExceptT, runExceptT)
 import Control.Monad.Lift.IO (liftIO)
 import Monad.Try (bracket_)

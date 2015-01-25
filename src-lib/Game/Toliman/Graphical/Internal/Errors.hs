@@ -51,6 +51,6 @@ check desc m = do
   if | not p -> throwError $ BadState desc
      | otherwise -> return ()
 
-checkError :: (MonadGraphicalError m) => Either TolimanGraphicalError a-> m a
+checkError :: (MonadGraphicalError m) => Either TolimanGraphicalError a -> m a
 checkError (Left e) = throwError e
 checkError (Right a) = return a

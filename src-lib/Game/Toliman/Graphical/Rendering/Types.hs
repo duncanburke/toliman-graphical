@@ -24,7 +24,7 @@ data WindowFlags =
     _wf_minimized :: !Bool,
     _wf_maximized :: !Bool,
     _wf_input_grabbed :: !Bool,
-    _wf_allow_highdpi :: !Bool }
+    _wf_allow_highdpi :: !Bool}
   deriving (Show)
 
 makeUnderscoreFields ''WindowFlags
@@ -40,7 +40,7 @@ windowFlagsDefault = WindowFlags {
   _wf_minimized = False,
   _wf_maximized = False,
   _wf_input_grabbed = False,
-  _wf_allow_highdpi = False }
+  _wf_allow_highdpi = False}
 
 type SDL_WindowFlags = Word32
 
@@ -55,7 +55,7 @@ data WindowConfig =
     _wincfg_pos :: !(WindowPos, WindowPos),
     _wincfg_resolution :: !(CInt, CInt),
     _wincfg_flags :: !WindowFlags,
-    _wincfg_gl_attrs :: !GLAttrs }
+    _wincfg_gl_attrs :: !GLAttrs}
   deriving (Show)
 
 makeUnderscoreFields ''WindowConfig
@@ -66,7 +66,7 @@ windowConfigDefault = WindowConfig {
   _wincfg_pos = (WindowUndefined, WindowUndefined),
   _wincfg_resolution = (640,480),
   _wincfg_flags = windowFlagsDefault,
-  _wincfg_gl_attrs = glAttrsDefault }
+  _wincfg_gl_attrs = glAttrsDefault}
 
 data Window =
   Window {
@@ -79,11 +79,11 @@ makeUnderscoreFields ''Window
 
 data RendererState = RendererState {
   _rd_window :: !(Maybe Window),
-  _rd_glctx :: !(Maybe SDL.GLContext) }
+  _rd_glctx :: !(Maybe SDL.GLContext)}
 
 makeUnderscoreFields ''RendererState
 
 rendererStateDefault :: RendererState
 rendererStateDefault = RendererState {
   _rd_window = Nothing,
-  _rd_glctx = Nothing }
+  _rd_glctx = Nothing}

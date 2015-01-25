@@ -17,7 +17,7 @@ data LogEntry =
   LogEntry {
     category :: !LogCategory,
     priority :: !LogPriority,
-    message :: !LogMessage }
+    message :: !LogMessage}
   deriving (Show)
 
 makeUnderscoreFields ''LogEntry
@@ -34,7 +34,7 @@ data SDLState =
     _sdl_init_sdl :: !Bool,
     _sdl_init_video :: !Bool,
     _sdl_init_events :: !Bool,
-    _sdl_ev_buf :: !(Ptr SDL.Event) }
+    _sdl_ev_buf :: !(Ptr SDL.Event)}
   deriving (Show)
 
 makeUnderscoreFields ''SDLState
@@ -44,7 +44,7 @@ sdlStateDefault = SDLState {
   _sdl_init_sdl = False,
   _sdl_init_video = False,
   _sdl_init_events = False,
-  _sdl_ev_buf = nullPtr }
+  _sdl_ev_buf = nullPtr}
 
 data LogPriorities =
   LogPriorities {
@@ -54,7 +54,7 @@ data LogPriorities =
     _log_audio :: LogPriority,
     _log_video :: LogPriority,
     _log_render :: LogPriority,
-    _log_input :: LogPriority }
+    _log_input :: LogPriority}
   deriving (Show)
 
 makeUnderscoreFields ''LogPriorities
@@ -67,7 +67,7 @@ logPrioritiesUniform pri = LogPriorities {
   _log_audio = pri,
   _log_video = pri,
   _log_render = pri,
-  _log_input = pri }
+  _log_input = pri}
 
 data SDLConfig =
   SDLConfig {

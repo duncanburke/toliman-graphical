@@ -18,12 +18,13 @@ import Game.Toliman.Graphical.SDL.Types (
 import Game.Toliman.Graphical.UI.Types(
   UIState, uiStateDefault)
 
-data GraphicalState = GraphicalState {
+data GraphicalState =
+  GraphicalState {
     _gr_renderer :: !RendererState,
     _gr_sdl :: !SDLState,
     _gr_ui :: !UIState,
     _gr_clock :: !(Maybe Monotonic.Clock),
-    _gr_time :: !DiffTime }
+    _gr_time :: !DiffTime}
 
 makeUnderscoreFields ''GraphicalState
 

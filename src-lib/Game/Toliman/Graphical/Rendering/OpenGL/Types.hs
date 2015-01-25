@@ -43,7 +43,7 @@ data GLAttrs =
     _gl_alpha_size :: !CInt,
     _gl_depth_size :: !CInt,
     _gl_stencil_size :: !CInt,
-    _gl_multisamples :: !CInt }
+    _gl_multisamples :: !CInt}
   deriving (Show)
 
 makeUnderscoreFields ''GLAttrs
@@ -58,7 +58,7 @@ glAttrsDefault = GLAttrs {
   _gl_alpha_size = 8,
   _gl_depth_size = 24,
   _gl_stencil_size = 8,
-  _gl_multisamples = 0 }
+  _gl_multisamples = 0}
 
 type GLAttrList = [(String,GLattr,CInt)]
 
@@ -91,11 +91,11 @@ fromVSyncMode VSyncAdaptive = -1
 
 data GLConfig =
   GLConfig {
-    _gl_vsync_mode :: !VSyncMode }
+    _gl_vsync_mode :: !VSyncMode}
   deriving (Show)
 
 makeUnderscoreFields ''GLConfig
 
 glConfigDefault :: GLConfig
 glConfigDefault = GLConfig {
-  _gl_vsync_mode = VSyncNone }
+  _gl_vsync_mode = VSyncNone}
