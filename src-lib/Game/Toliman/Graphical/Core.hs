@@ -27,9 +27,11 @@ graphicalMain = do
 
 graphicalMain' :: ExceptT TolimanGraphicalError (RefT GraphicalState IO) ()
 graphicalMain' = do
-  bracket_ initSDL finalSDL $ do
+  let sdl_config = SDL.sdlConfigDefault
+  bracket_ (initSDL sdl_config) finalSDL $ do
     SDL.setLogPriorities $ SDL.logPrioritiesUniform SDL.SDL_LOG_PRIORITY_VERBOSE
-    initSDLVideo
+    initSDLVideo sdl_config
+    initSDLEvents sdl_config
     initClock
     createWin Rendering.windowConfigDefault
     createGLCtx Rendering.glConfigDefault

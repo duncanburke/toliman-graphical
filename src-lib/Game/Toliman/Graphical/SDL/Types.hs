@@ -68,3 +68,13 @@ logPrioritiesUniform pri = LogPriorities {
   _log_video = pri,
   _log_render = pri,
   _log_input = pri }
+
+data SDLConfig =
+  SDLConfig {
+    _sdl_mouse_relative :: !Bool}
+
+makeUnderscoreFields ''SDLConfig
+
+sdlConfigDefault :: SDLConfig
+sdlConfigDefault = SDLConfig {
+  _sdl_mouse_relative = True}

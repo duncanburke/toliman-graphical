@@ -38,8 +38,8 @@ import Game.Toliman.Graphical.SDL.Types
 import Game.Toliman.Graphical.SDL.Core
 import Game.Toliman.Graphical.UI (initUIState, finalUIState)
 
-initSDL :: MonadGraphical ()
-initSDL = mask_ $ do
+initSDL :: SDLConfig -> MonadGraphical ()
+initSDL _ = mask_ $ do
   check "initSDL: not init_sdl" $ not <$> (access $ sdl.init_sdl)
   _ <- sdlCheckRet' "init" . SDL.init $ 0
   (sdl.init_sdl) .*= True
@@ -55,11 +55,14 @@ finalSDL = mask_ $ do
      liftIO SDL.quit
      (sdl.init_sdl) .*= False
 
-initSDLVideo :: MonadGraphical ()
-initSDLVideo = mask_ $ do
+initSDLVideo :: SDLConfig -> MonadGraphical ()
+initSDLVideo c = mask_ $ do
   check "initSDLVideo: not init_video" $ not <$> (access $ sdl.init_video)
   _ <- sdlCheckRet' "initSDLVideo: initVideo" . SDL.initSubSystem $ SDL_INIT_VIDEO
   (sdl.init_video) .*= True
+  _ <- sdlCheckRet' "initSDLVideo: setRelativeMouseMoude" . SDL.setRelativeMouseMode $ c^.mouse_relative
+  return ()
+
 
 finalSDLVideo :: MonadGraphical ()
 finalSDLVideo = mask_ $ do
@@ -71,8 +74,8 @@ finalSDLVideo = mask_ $ do
      liftIO . SDL.quitSubSystem $ SDL_INIT_VIDEO
      (sdl.init_video) .*= False
 
-initSDLEvents :: MonadGraphical ()
-initSDLEvents = mask_ $ do
+initSDLEvents :: SDLConfig -> MonadGraphical ()
+initSDLEvents _  = mask_ $ do
   check "initSDLEvents: not init_events" $ not <$> (access $ sdl.init_events)
   buf <- sdlCheckPtr' "initSDLEvents: malloc ev_buf" $ mallocArray sdlEvBufLen
   (sdl.ev_buf) .*= buf
