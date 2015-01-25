@@ -18,7 +18,8 @@ import Game.Toliman.Graphical.Rendering.OpenGL.Types (GLErrorFlag(..))
 data TolimanGraphicalError =
   SDLError String |
   GLError [GLErrorFlag] |
-  BadState String
+  BadState String |
+  UIError String
   deriving (Show, Typeable)
 
 instance Exception TolimanGraphicalError

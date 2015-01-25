@@ -40,8 +40,8 @@ graphicalMain' = do
 gameLoop :: MonadGraphical ()
 gameLoop = do
   (time .*=) =<< liftIO . clockGetTime =<< getJust "gameLoop: clock" (access clock)
-  UI.syncUIState
-  UI.runUI . UI.processEvents . (UI.translateSDLEvent <$>) =<< SDL.getEvents
+  --UI.syncUIState
+  --UI.runUI . UI.processEvents . (UI.translateSDLEvent <$>) =<< SDL.getEvents
   liftIO $ do
     GL.clearColor $= GL.Color4 0 0 1 0
     GL.clear [GL.ColorBuffer]
